@@ -59,7 +59,7 @@ export function useGameState(selectedDate = null, difficulty = 'medium') {
         if (!gameComplete) {
           const cleanDate = puzzleData.date.replace(' (Test)', '');
           const currentDist = calculateDistance(route);
-          const efficiencyValue = ((puzzleData.optimal_distance / currentDist) * 100).toFixed(2) + '%';
+          const efficiencyValue = (Math.min((puzzleData.optimal_distance / currentDist) * 100, 100)).toFixed(2) + '%';
           const finalAttempts = attempts + (currentAttemptStarted ? 1 : 0);
           
           saveScore(cleanDate, difficulty, {
@@ -380,7 +380,7 @@ export function useGameState(selectedDate = null, difficulty = 'medium') {
 
   const currentDistance = calculateDistance(route);
   const efficiency = gameComplete && puzzleData
-    ? ((puzzleData.optimal_distance / currentDistance) * 100).toFixed(2) + '%'
+    ? (Math.min((puzzleData.optimal_distance / currentDistance) * 100, 100)).toFixed(2) + '%'
     : '-';
 
   return {
