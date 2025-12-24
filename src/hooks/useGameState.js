@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { loadPuzzle, loadSolution } from '../utils/puzzleLoader';
 import { calculateDistance, findNodeAt, isSameNode } from '../utils/canvasUtils';
+import { saveScore, getBestScore } from '../utils/scoreStorage';
 
 export function useGameState(selectedDate = null, difficulty = 'medium') {
   const [puzzleData, setPuzzleData] = useState(null);
@@ -53,10 +54,27 @@ export function useGameState(selectedDate = null, difficulty = 'medium') {
           setAttempts(prev => prev + 1);
           setCurrentAttemptStarted(false);
         }
+        
+        // Save score when game is completed (only once)
+        if (!gameComplete) {
+          const cleanDate = puzzleData.date.replace(' (Test)', '');
+          const currentDist = calculateDistance(route);
+          const efficiencyValue = ((puzzleData.optimal_distance / currentDist) * 100).toFixed(2) + '%';
+          const finalAttempts = attempts + (currentAttemptStarted ? 1 : 0);
+          
+          saveScore(cleanDate, difficulty, {
+            distance: currentDist,
+            optimalDistance: puzzleData.optimal_distance,
+            efficiency: efficiencyValue,
+            attempts: finalAttempts > 0 ? finalAttempts : 1,
+            timestamp: Date.now()
+          });
+        }
+        
         setGameComplete(true);
       }
     }
-  }, [route, visitedHouses, puzzleData, currentAttemptStarted, gameComplete]);
+  }, [route, visitedHouses, puzzleData, currentAttemptStarted, gameComplete, attempts, difficulty]);
 
   useEffect(() => {
     checkWinCondition();

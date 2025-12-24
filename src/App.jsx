@@ -8,6 +8,7 @@ import { ReturnReminder } from './components/ReturnReminder';
 import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { DateSelector } from './components/DateSelector';
 import { Instructions } from './components/Instructions';
+import { Statistics } from './components/Statistics';
 import { themes } from './themes';
 
 function App() {
@@ -46,6 +47,8 @@ function App() {
       ? savedDifficulty
       : 'medium';
   });
+
+  const [showStatistics, setShowStatistics] = useState(false);
 
   useEffect(() => {
     if (selectedDate) {
@@ -105,6 +108,7 @@ function App() {
         gameComplete={gameComplete}
         attempts={attempts}
         theme={theme}
+        onShowStatistics={() => setShowStatistics(true)}
       />
 
       <WinMessage
@@ -138,6 +142,14 @@ function App() {
         showingSolution={showingSolution}
         theme={theme}
         difficulty={selectedDifficulty}
+      />
+
+      <Statistics
+        puzzleData={puzzleData}
+        selectedDifficulty={selectedDifficulty}
+        theme={theme}
+        isOpen={showStatistics}
+        onClose={() => setShowStatistics(false)}
       />
     </div>
   );

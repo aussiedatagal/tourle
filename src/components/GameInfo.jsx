@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DifficultySelector } from './DifficultySelector';
+import { getBestScore } from '../utils/scoreStorage';
 
 export function GameInfo({ 
   puzzleData, 
@@ -9,9 +10,21 @@ export function GameInfo({
   onDifficultyChange,
   gameComplete,
   attempts,
-  theme 
+  theme,
+  onShowStatistics
 }) {
   const [shareCopied, setShareCopied] = useState(false);
+  const [bestScore, setBestScore] = useState(null);
+
+  useEffect(() => {
+    if (puzzleData) {
+      const cleanDate = puzzleData.date.replace(' (Test)', '');
+      const best = getBestScore(cleanDate, selectedDifficulty);
+      setBestScore(best);
+    } else {
+      setBestScore(null);
+    }
+  }, [puzzleData, selectedDifficulty]);
 
   const handleShare = async () => {
     if (!puzzleData || !gameComplete) return;
@@ -101,8 +114,14 @@ export function GameInfo({
         <span className="label">Efficiency:</span>
         <span>{efficiency}</span>
       </div>
-      {gameComplete && (
-        <div className="info-item share-item">
+      {bestScore && (
+        <div className="info-item">
+          <span className="label">Best:</span>
+          <span className="best-score-display">{bestScore.efficiency}</span>
+        </div>
+      )}
+      <div className="info-item share-item">
+        {gameComplete && (
           <button
             className="btn btn-share"
             onClick={handleShare}
@@ -110,8 +129,15 @@ export function GameInfo({
           >
             {shareCopied ? '✓ Copied!' : 'Share'}
           </button>
-        </div>
-      )}
+        )}
+        <button
+          className="btn btn-secondary btn-stats"
+          onClick={onShowStatistics}
+          title="View statistics"
+        >
+          📊 Stats
+        </button>
+      </div>
     </div>
   );
 }
