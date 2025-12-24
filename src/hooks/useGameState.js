@@ -200,12 +200,12 @@ export function useGameState(selectedDate = null, difficulty = 'medium') {
       if (route.length === 0) {
         return;
       } else if (route.length > 1 && visitedHouses.size === puzzleData.houses.length) {
-        setRouteAnimationProgress(0);
+        setRouteAnimationProgress(1);
         setRoute(prev => [...prev, { type: 'north_pole', x: targetNode.x, y: targetNode.y }]);
         setShowReminder(false);
       } else if (route.length > 0 && route[route.length - 1].type !== 'north_pole') {
         if (visitedHouses.size === puzzleData.houses.length) {
-          setRouteAnimationProgress(0);
+          setRouteAnimationProgress(1);
           setRoute(prev => [...prev, { type: 'north_pole', x: targetNode.x, y: targetNode.y }]);
           setShowReminder(false);
         }
@@ -218,7 +218,7 @@ export function useGameState(selectedDate = null, difficulty = 'medium') {
         return;
       }
 
-      setRouteAnimationProgress(0);
+      setRouteAnimationProgress(1);
       
       if (route.length === 0) {
         const np = puzzleData.north_pole;
@@ -357,11 +357,12 @@ export function useGameState(selectedDate = null, difficulty = 'medium') {
     routeAnimationRef.current = requestAnimationFrame(animate);
   }, []);
 
-  useEffect(() => {
-    if (route.length >= 2 && routeAnimationProgress === 0) {
-      animateRouteSegment();
-    }
-  }, [route.length, routeAnimationProgress, animateRouteSegment]);
+  // Animation disabled - nodes snap immediately
+  // useEffect(() => {
+  //   if (route.length >= 2 && routeAnimationProgress === 0) {
+  //     animateRouteSegment();
+  //   }
+  // }, [route.length, routeAnimationProgress, animateRouteSegment]);
 
   useEffect(() => {
     return () => {
