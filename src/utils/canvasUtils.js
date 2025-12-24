@@ -70,14 +70,21 @@ export function setupCanvas(canvas) {
   const container = canvas.parentElement;
   if (!container) return;
   
-  const containerWidth = container.clientWidth - 40;
+  const isMobile = window.innerWidth <= 768 || 'ontouchstart' in window;
+  
+  // On mobile, use almost full width (just subtract padding)
+  // On desktop, subtract more for margins
+  const paddingReduction = isMobile ? 20 : 40;
+  const containerWidth = container.clientWidth - paddingReduction;
   
   // Calculate available viewport height for the canvas
   // Account for other UI elements that might be above/below
   const viewportHeight = window.innerHeight;
-  const estimatedOtherElementsHeight = 300; // Conservative estimate for header, controls, padding
+  // On mobile, UI elements are more compact, so use less height estimate
+  const estimatedOtherElementsHeight = isMobile ? 200 : 300;
   const availableHeight = viewportHeight - estimatedOtherElementsHeight;
   
+  // On mobile, prioritize width to make it as large as possible for easier clicking
   // Use the smaller of width or available height to ensure it fits
   // Still cap at 1000px max
   const maxSize = Math.min(containerWidth, availableHeight, 1000);

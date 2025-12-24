@@ -246,7 +246,15 @@ describe('canvasUtils', () => {
     });
 
     it('should handle small container widths', () => {
+      // Mock desktop environment
+      const originalInnerWidth = window.innerWidth;
+      const originalInnerHeight = window.innerHeight;
+      const originalOntouchstart = window.ontouchstart;
+      
+      window.innerWidth = 1000; // Desktop width to avoid mobile detection
       window.innerHeight = 800; // Medium viewport
+      delete window.ontouchstart; // Remove touch support to ensure desktop detection
+      
       const mockContainer = {
         clientWidth: 300
       };
@@ -265,10 +273,25 @@ describe('canvasUtils', () => {
       // maxSize = Math.min(300 - 40, 800 - 300, 1000) = Math.min(260, 500, 1000) = 260
       expect(mockCanvas.style.width).toBe('260px');
       expect(mockCanvas.style.height).toBe('260px');
+      
+      // Restore
+      window.innerWidth = originalInnerWidth;
+      window.innerHeight = originalInnerHeight;
+      if (originalOntouchstart !== undefined) {
+        window.ontouchstart = originalOntouchstart;
+      }
     });
 
     it('should use viewport height when it limits size', () => {
+      // Mock desktop environment
+      const originalInnerWidth = window.innerWidth;
+      const originalInnerHeight = window.innerHeight;
+      const originalOntouchstart = window.ontouchstart;
+      
+      window.innerWidth = 1000; // Desktop width to avoid mobile detection
       window.innerHeight = 600; // Small viewport
+      delete window.ontouchstart; // Remove touch support to ensure desktop detection
+      
       const mockContainer = {
         clientWidth: 1200
       };
@@ -287,6 +310,13 @@ describe('canvasUtils', () => {
       // maxSize = Math.min(1200 - 40, 600 - 300, 1000) = Math.min(1160, 300, 1000) = 300
       expect(mockCanvas.style.width).toBe('300px');
       expect(mockCanvas.style.height).toBe('300px');
+      
+      // Restore
+      window.innerWidth = originalInnerWidth;
+      window.innerHeight = originalInnerHeight;
+      if (originalOntouchstart !== undefined) {
+        window.ontouchstart = originalOntouchstart;
+      }
     });
   });
 });
