@@ -1,8 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export function Controls({ route, onUndo, onReset, onToggleSolution, showingSolution, theme, difficulty }) {
+export function Controls({ route, onUndo, onReset, onToggleSolution, showingSolution, theme, difficulty, onShowInstructions }) {
   const isHard = difficulty === 'hard';
   const [showMessage, setShowMessage] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   const handleGiveUpClick = (e) => {
     if (isHard) {
@@ -56,6 +65,15 @@ export function Controls({ route, onUndo, onReset, onToggleSolution, showingSolu
             </div>
           )}
         </div>
+        {onShowInstructions && (
+          <button
+            className="btn btn-secondary"
+            onClick={onShowInstructions}
+            title="Show instructions"
+          >
+            {isMobile ? '📖' : '📖 Instructions'}
+          </button>
+        )}
       </div>
     </div>
   );

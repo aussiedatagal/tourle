@@ -21,11 +21,11 @@ body {
 
 header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 15px;
 }
 
 .date-selector {
-    margin-bottom: 15px;
+    margin-bottom: 0;
     display: flex;
     justify-content: center;
 }
@@ -177,6 +177,10 @@ h1 {
     font-size: 1.1em;
     color: #b8d4f0;
     opacity: 0.9;
+    margin: 0;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
 }
 
 .game-info {
@@ -231,7 +235,7 @@ h1 {
 .canvas-container {
     display: flex;
     justify-content: center;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     background: rgba(255, 255, 255, 0.02);
     padding: 20px;
     border-radius: 10px;
@@ -251,6 +255,7 @@ h1 {
 .controls {
     text-align: center;
     margin-bottom: 20px;
+    margin-top: 10px;
 }
 
 .give-up-button-wrapper {
@@ -368,41 +373,77 @@ h1 {
     transform: translateY(0);
 }
 
-.instructions-container {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    max-width: 600px;
-    margin: 0 auto 20px;
-    overflow: hidden;
+.date-selector {
+    margin-top: 20px;
+    margin-bottom: 20px;
 }
 
-.instructions-toggle {
+.instructions-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.instructions-modal {
+    background: linear-gradient(135deg, #1a1f3a 0%, #0a0e27 100%);
+    border-radius: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    max-width: 600px;
     width: 100%;
-    background: transparent;
-    border: none;
-    color: #ffffff;
-    padding: 15px 20px;
-    font-size: 1.1em;
-    font-weight: bold;
-    cursor: pointer;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    animation: slideIn 0.3s ease;
+}
+
+.instructions-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: background-color 0.2s ease;
+    padding: 20px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
 }
 
-.instructions-toggle:hover {
-    background: rgba(255, 255, 255, 0.05);
+.instructions-header h2 {
+    margin: 0;
+    font-size: 1.8em;
+    color: #ffffff;
 }
 
-.toggle-icon {
-    font-size: 0.8em;
-    opacity: 0.7;
-    transition: transform 0.2s ease;
+.instructions-close {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 2em;
+    cursor: pointer;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    line-height: 1;
+}
+
+.instructions-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
 }
 
 .instructions-content {
-    padding: 0 20px 20px;
+    padding: 20px;
     text-align: left;
 }
 
@@ -508,6 +549,13 @@ h1 {
     h1 {
         font-size: 2em;
     }
+
+    .subtitle {
+        font-size: 0.95em;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+    }
     
     .game-info {
         gap: 12px;
@@ -561,19 +609,28 @@ h1 {
         -webkit-tap-highlight-color: transparent;
     }
     
-    .instructions-container {
-        margin-bottom: 15px;
+    .instructions-modal {
+        max-width: 95%;
+        margin: 10px;
     }
 
-    .instructions-toggle {
+    .instructions-header {
         padding: 15px;
-        font-size: 1.1em;
-        min-height: 48px; /* Minimum touch target size */
+    }
+
+    .instructions-header h2 {
+        font-size: 1.5em;
     }
 
     .instructions-content {
-        padding: 0 15px 15px;
+        padding: 15px;
         font-size: 1em;
+    }
+
+    .btn-instructions {
+        font-size: 0.95em;
+        padding: 12px 18px;
+        min-height: 48px;
     }
 
     .date-selector-controls {
@@ -627,13 +684,14 @@ h1 {
     }
 
     .btn {
-        padding: 15px 30px;
-        font-size: 1.2em;
-        min-height: 48px; /* Minimum touch target size */
+        padding: 8px 12px;
+        font-size: 0.85em;
+        min-height: 44px; /* Minimum touch target size */
     }
 
     .button-group {
-        gap: 12px;
+        gap: 8px;
+        flex-wrap: nowrap;
     }
 
     .label {
@@ -652,7 +710,17 @@ h1 {
     }
 
     .subtitle {
-        font-size: 1em;
+        font-size: 0.9em;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+    }
+
+    .btn-instructions-small {
+        font-size: 0.75em;
+        padding: 2px 4px;
+        min-width: 24px;
+        flex-shrink: 0;
     }
 
     .game-info {
@@ -677,8 +745,14 @@ h1 {
     }
 
     .btn {
-        padding: 12px 24px;
-        font-size: 1.1em;
+        padding: 6px 10px;
+        font-size: 0.8em;
+        min-height: 40px;
+    }
+
+    .button-group {
+        gap: 6px;
+        flex-wrap: nowrap;
     }
 
     .date-select {

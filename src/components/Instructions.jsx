@@ -1,19 +1,27 @@
-import { useState } from 'react';
+export function Instructions({ theme, isOpen, onClose }) {
+  if (!isOpen) {
+    return null;
+  }
 
-export function Instructions({ theme }) {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const handleClose = () => {
+    if (onClose) {
+      onClose(false);
+    }
+  };
 
   return (
-    <div className="instructions-container">
-      <button
-        className="instructions-toggle"
-        onClick={() => setIsExpanded(!isExpanded)}
-        aria-expanded={isExpanded}
-      >
-        <span>{theme.instructions.title}</span>
-        <span className="toggle-icon">{isExpanded ? '▼' : '▶'}</span>
-      </button>
-      {isExpanded && (
+    <div className="instructions-overlay" onClick={handleClose}>
+      <div className="instructions-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="instructions-header">
+          <h2>{theme.instructions.title}</h2>
+          <button
+            className="instructions-close"
+            onClick={handleClose}
+            aria-label="Close instructions"
+          >
+            ×
+          </button>
+        </div>
         <div className="instructions-content">
           <ul>
             {theme.instructions.items.map((item, index) => (
@@ -24,7 +32,7 @@ export function Instructions({ theme }) {
             ))}
           </ul>
         </div>
-      )}
+      </div>
     </div>
   );
 }

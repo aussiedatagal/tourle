@@ -49,6 +49,15 @@ function App() {
   });
 
   const [showStatistics, setShowStatistics] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(() => {
+    // Check if this is the first visit
+    const hasVisited = localStorage.getItem('tsp-has-visited');
+    if (!hasVisited) {
+      localStorage.setItem('tsp-has-visited', 'true');
+      return true; // Show instructions on first visit
+    }
+    return false;
+  });
 
   useEffect(() => {
     if (selectedDate) {
@@ -91,33 +100,11 @@ function App() {
         <p className="subtitle">{theme.subtitle}</p>
       </header>
 
-      <DateSelector
-        selectedDate={selectedDate}
-        onDateChange={setSelectedDate}
-        theme={theme}
+      <Instructions 
+        theme={theme} 
+        isOpen={showInstructions}
+        onClose={setShowInstructions}
       />
-
-      <Instructions theme={theme} />
-
-      <GameInfo
-        puzzleData={puzzleData}
-        currentDistance={currentDistance}
-        efficiency={efficiency}
-        selectedDifficulty={selectedDifficulty}
-        onDifficultyChange={setSelectedDifficulty}
-        gameComplete={gameComplete}
-        attempts={attempts}
-        theme={theme}
-        onShowStatistics={() => setShowStatistics(true)}
-      />
-
-      <WinMessage
-        efficiency={finalEfficiency}
-        isVisible={gameComplete}
-        theme={theme}
-      />
-
-      <ReturnReminder isVisible={showReminder} theme={theme} />
 
       <div className="canvas-container">
         <GameCanvas
@@ -142,7 +129,34 @@ function App() {
         showingSolution={showingSolution}
         theme={theme}
         difficulty={selectedDifficulty}
+        onShowInstructions={() => setShowInstructions(true)}
       />
+
+      <GameInfo
+        puzzleData={puzzleData}
+        currentDistance={currentDistance}
+        efficiency={efficiency}
+        selectedDifficulty={selectedDifficulty}
+        onDifficultyChange={setSelectedDifficulty}
+        gameComplete={gameComplete}
+        attempts={attempts}
+        theme={theme}
+        onShowStatistics={() => setShowStatistics(true)}
+      />
+
+      <DateSelector
+        selectedDate={selectedDate}
+        onDateChange={setSelectedDate}
+        theme={theme}
+      />
+
+      <WinMessage
+        efficiency={finalEfficiency}
+        isVisible={gameComplete}
+        theme={theme}
+      />
+
+      <ReturnReminder isVisible={showReminder} theme={theme} />
 
       <Statistics
         puzzleData={puzzleData}
