@@ -1,0 +1,88 @@
+export async function loadPuzzle(date = null, difficulty = 'medium') {
+  if (!date) {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    date = { year, month, day };
+  }
+
+  const puzzlePath = `puzzles/${date.year}/${date.month}/${date.day}_${difficulty}.json`;
+
+  try {
+    const response = await fetch(puzzlePath);
+    if (!response.ok) {
+      throw new Error('Puzzle not found');
+    }
+    const puzzleData = await response.json();
+    return { puzzleData, isTest: false };
+  } catch (error) {
+    console.warn(`Puzzle for ${puzzlePath} not found, using fallback`);
+    // Try legacy format (without difficulty) for backward compatibility
+    const legacyPath = `puzzles/${date.year}/${date.month}/${date.day}.json`;
+    try {
+      const legacyResponse = await fetch(legacyPath);
+      if (legacyResponse.ok) {
+        const puzzleData = await legacyResponse.json();
+        return { puzzleData, isTest: false };
+      }
+    } catch (legacyError) {
+      // Continue to fallback puzzle
+    }
+    
+    // Try fallback puzzle with difficulty
+    const fallbackPath = `puzzles/2025/12/24_${difficulty}.json`;
+    try {
+      const fallbackResponse = await fetch(fallbackPath);
+      if (fallbackResponse.ok) {
+        const puzzleData = await fallbackResponse.json();
+        return { puzzleData: { ...puzzleData, date: puzzleData.date + ' (Test)' }, isTest: true };
+      }
+    } catch (fallbackError) {
+      // Continue to legacy fallback
+    }
+    
+    // Try legacy fallback format (without difficulty) for backward compatibility
+    const legacyFallbackPath = 'puzzles/2025/12/24.json';
+    try {
+      const legacyFallbackResponse = await fetch(legacyFallbackPath);
+      if (legacyFallbackResponse.ok) {
+        const puzzleData = await legacyFallbackResponse.json();
+        return { puzzleData: { ...puzzleData, date: puzzleData.date + ' (Test)' }, isTest: true };
+      }
+    } catch (legacyFallbackError) {
+      // All fallbacks failed
+    }
+    
+    console.error('Error loading fallback puzzle: All fallbacks failed');
+    throw new Error('Fallback puzzle also not found');
+  }
+}
+
+export async function loadSolution(puzzleDate, difficulty = 'medium') {
+  const [year, month, day] = puzzleDate.split('-');
+  const solutionPath = `puzzles/${year}/${month}/${day}_${difficulty}_solution.json`;
+
+  try {
+    const response = await fetch(solutionPath);
+    if (!response.ok) {
+      throw new Error('Solution not found');
+    }
+    const solution = await response.json();
+    return solution;
+  } catch (error) {
+    // Try without difficulty suffix for backward compatibility
+    const legacyPath = `puzzles/${year}/${month}/${day}_solution.json`;
+    try {
+      const legacyResponse = await fetch(legacyPath);
+      if (legacyResponse.ok) {
+        return await legacyResponse.json();
+      }
+    } catch (legacyError) {
+      // Ignore and throw original error
+    }
+    console.error('Error loading solution:', error);
+    throw error;
+  }
+}
+
