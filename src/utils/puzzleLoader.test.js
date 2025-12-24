@@ -49,7 +49,7 @@ describe('puzzleLoader', () => {
       const dateObj = { year: '2025', month: '12', day: '01' };
       const result = await loadPuzzle(dateObj);
 
-      expect(global.fetch).toHaveBeenCalledWith('puzzles/2025/12/01_medium.json');
+      expect(global.fetch).toHaveBeenCalledWith('/puzzles/2025/12/01_medium.json');
       expect(result.puzzleData).toEqual(mockPuzzle);
       expect(result.isTest).toBe(false);
     });
@@ -70,7 +70,7 @@ describe('puzzleLoader', () => {
       const dateObj = { year: '2025', month: '12', day: '15' };
       await loadPuzzle(dateObj);
 
-      expect(global.fetch).toHaveBeenCalledWith('puzzles/2025/12/15_medium.json');
+      expect(global.fetch).toHaveBeenCalledWith('/puzzles/2025/12/15_medium.json');
     });
 
     it('should load puzzle with specified difficulty', async () => {
@@ -89,7 +89,7 @@ describe('puzzleLoader', () => {
       const dateObj = { year: '2025', month: '12', day: '15' };
       await loadPuzzle(dateObj, 'hard');
 
-      expect(global.fetch).toHaveBeenCalledWith('puzzles/2025/12/15_hard.json');
+      expect(global.fetch).toHaveBeenCalledWith('/puzzles/2025/12/15_hard.json');
     });
 
     it('should fallback to test puzzle when puzzle is not found', async () => {
@@ -120,9 +120,9 @@ describe('puzzleLoader', () => {
       const result = await loadPuzzle(dateObj);
 
       expect(global.fetch).toHaveBeenCalledTimes(3);
-      expect(global.fetch).toHaveBeenNthCalledWith(1, 'puzzles/2025/12/99_medium.json');
-      expect(global.fetch).toHaveBeenNthCalledWith(2, 'puzzles/2025/12/99.json');
-      expect(global.fetch).toHaveBeenNthCalledWith(3, 'puzzles/2025/12/24_medium.json');
+      expect(global.fetch).toHaveBeenNthCalledWith(1, '/puzzles/2025/12/99_medium.json');
+      expect(global.fetch).toHaveBeenNthCalledWith(2, '/puzzles/2025/12/99.json');
+      expect(global.fetch).toHaveBeenNthCalledWith(3, '/puzzles/2025/12/24_medium.json');
       expect(result.puzzleData.date).toBe('2025-12-24 (Test)');
       expect(result.isTest).toBe(true);
     });
@@ -150,8 +150,8 @@ describe('puzzleLoader', () => {
       const result = await loadPuzzle(dateObj, 'easy');
 
       expect(global.fetch).toHaveBeenCalledTimes(2);
-      expect(global.fetch).toHaveBeenNthCalledWith(1, 'puzzles/2025/12/15_easy.json');
-      expect(global.fetch).toHaveBeenNthCalledWith(2, 'puzzles/2025/12/15.json');
+      expect(global.fetch).toHaveBeenNthCalledWith(1, '/puzzles/2025/12/15_easy.json');
+      expect(global.fetch).toHaveBeenNthCalledWith(2, '/puzzles/2025/12/15.json');
       expect(result.puzzleData).toEqual(mockLegacyPuzzle);
       expect(result.isTest).toBe(false);
     });
@@ -195,7 +195,7 @@ describe('puzzleLoader', () => {
 
       const result = await loadSolution('2025-12-15');
 
-      expect(global.fetch).toHaveBeenCalledWith('puzzles/2025/12/15_medium_solution.json');
+      expect(global.fetch).toHaveBeenCalledWith('/puzzles/2025/12/15_medium_solution.json');
       expect(result).toEqual(mockSolution);
     });
 
@@ -213,7 +213,7 @@ describe('puzzleLoader', () => {
 
       await loadSolution('2025-12-15', 'hard');
 
-      expect(global.fetch).toHaveBeenCalledWith('puzzles/2025/12/15_hard_solution.json');
+      expect(global.fetch).toHaveBeenCalledWith('/puzzles/2025/12/15_hard_solution.json');
     });
 
     it('should parse date string correctly', async () => {
@@ -230,7 +230,7 @@ describe('puzzleLoader', () => {
 
       await loadSolution('2025-12-01');
 
-      expect(global.fetch).toHaveBeenCalledWith('puzzles/2025/12/01_medium_solution.json');
+      expect(global.fetch).toHaveBeenCalledWith('/puzzles/2025/12/01_medium_solution.json');
     });
 
     it('should fallback to legacy solution format when difficulty solution not found', async () => {
@@ -254,8 +254,8 @@ describe('puzzleLoader', () => {
       const result = await loadSolution('2025-12-15', 'easy');
 
       expect(global.fetch).toHaveBeenCalledTimes(2);
-      expect(global.fetch).toHaveBeenNthCalledWith(1, 'puzzles/2025/12/15_easy_solution.json');
-      expect(global.fetch).toHaveBeenNthCalledWith(2, 'puzzles/2025/12/15_solution.json');
+      expect(global.fetch).toHaveBeenNthCalledWith(1, '/puzzles/2025/12/15_easy_solution.json');
+      expect(global.fetch).toHaveBeenNthCalledWith(2, '/puzzles/2025/12/15_solution.json');
       expect(result).toEqual(mockSolution);
     });
 

@@ -1,3 +1,6 @@
+// Get base URL for GitHub Pages deployment
+const BASE_URL = import.meta.env.BASE_URL || '/';
+
 export async function loadPuzzle(date = null, difficulty = 'medium') {
   if (!date) {
     const today = new Date();
@@ -7,7 +10,7 @@ export async function loadPuzzle(date = null, difficulty = 'medium') {
     date = { year, month, day };
   }
 
-  const puzzlePath = `puzzles/${date.year}/${date.month}/${date.day}_${difficulty}.json`;
+  const puzzlePath = `${BASE_URL}puzzles/${date.year}/${date.month}/${date.day}_${difficulty}.json`;
 
   try {
     const response = await fetch(puzzlePath);
@@ -19,7 +22,7 @@ export async function loadPuzzle(date = null, difficulty = 'medium') {
   } catch (error) {
     console.warn(`Puzzle for ${puzzlePath} not found, using fallback`);
     // Try legacy format (without difficulty) for backward compatibility
-    const legacyPath = `puzzles/${date.year}/${date.month}/${date.day}.json`;
+    const legacyPath = `${BASE_URL}puzzles/${date.year}/${date.month}/${date.day}.json`;
     try {
       const legacyResponse = await fetch(legacyPath);
       if (legacyResponse.ok) {
@@ -31,7 +34,7 @@ export async function loadPuzzle(date = null, difficulty = 'medium') {
     }
     
     // Try fallback puzzle with difficulty
-    const fallbackPath = `puzzles/2025/12/24_${difficulty}.json`;
+    const fallbackPath = `${BASE_URL}puzzles/2025/12/24_${difficulty}.json`;
     try {
       const fallbackResponse = await fetch(fallbackPath);
       if (fallbackResponse.ok) {
@@ -43,7 +46,7 @@ export async function loadPuzzle(date = null, difficulty = 'medium') {
     }
     
     // Try legacy fallback format (without difficulty) for backward compatibility
-    const legacyFallbackPath = 'puzzles/2025/12/24.json';
+    const legacyFallbackPath = `${BASE_URL}puzzles/2025/12/24.json`;
     try {
       const legacyFallbackResponse = await fetch(legacyFallbackPath);
       if (legacyFallbackResponse.ok) {
@@ -61,7 +64,7 @@ export async function loadPuzzle(date = null, difficulty = 'medium') {
 
 export async function loadSolution(puzzleDate, difficulty = 'medium') {
   const [year, month, day] = puzzleDate.split('-');
-  const solutionPath = `puzzles/${year}/${month}/${day}_${difficulty}_solution.json`;
+  const solutionPath = `${BASE_URL}puzzles/${year}/${month}/${day}_${difficulty}_solution.json`;
 
   try {
     const response = await fetch(solutionPath);
@@ -72,7 +75,7 @@ export async function loadSolution(puzzleDate, difficulty = 'medium') {
     return solution;
   } catch (error) {
     // Try without difficulty suffix for backward compatibility
-    const legacyPath = `puzzles/${year}/${month}/${day}_solution.json`;
+    const legacyPath = `${BASE_URL}puzzles/${year}/${month}/${day}_solution.json`;
     try {
       const legacyResponse = await fetch(legacyPath);
       if (legacyResponse.ok) {
