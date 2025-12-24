@@ -10,14 +10,17 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
   const touchHandledRef = useRef(false);
   
   // Use refs to store latest values for event listeners
-  const stateRef = useRef({ isDragging, dragStartNode, gameComplete, puzzleData, onNodeClick, route });
+  const stateRef = useRef({ isDragging, dragStartNode, gameComplete, puzzleData, onNodeClick, route, visitedHouses });
   
   // Track touch drag state locally (synchronously) to avoid async state issues
-  const touchDragStateRef = useRef({ isDragging: false, dragStartNode: null, hasMoved: false });
+  const touchDragStateRef = useRef({ isDragging: false, dragStartNode: null, hasMoved: false, lastVisitedNode: null });
+  
+  // Track last visited node during drag to avoid adding same node multiple times
+  const lastVisitedNodeRef = useRef(null);
   
   useEffect(() => {
-    stateRef.current = { isDragging, dragStartNode, gameComplete, puzzleData, onNodeClick, route };
-  }, [isDragging, dragStartNode, gameComplete, puzzleData, onNodeClick, route]);
+    stateRef.current = { isDragging, dragStartNode, gameComplete, puzzleData, onNodeClick, route, visitedHouses };
+  }, [isDragging, dragStartNode, gameComplete, puzzleData, onNodeClick, route, visitedHouses]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -35,6 +38,15 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    // Helper function to check if a node is the same as another
+    const isSameNode = (node1, node2) => {
+      if (!node1 || !node2) return false;
+      if (node1.type !== node2.type) return false;
+      if (node1.type === 'house') return node1.id === node2.id;
+      if (node1.type === 'north_pole') return node1.x === node2.x && node1.y === node2.y;
+      return false;
+    };
+
     // Create wrapper functions that will always have access to latest refs
     const touchStartHandler = (e) => {
       const state = stateRef.current;
@@ -47,25 +59,36 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
       if (!canvas) {
         return;
       }
-      
-      // Always prevent default to stop scrolling/zooming
-      e.preventDefault();
-      e.stopPropagation();
-      touchHandledRef.current = true;
 
       const coords = getCanvasCoords(canvas, e, true);
       const node = findNodeAt(state.puzzleData, coords.x, coords.y);
 
+      // Always prevent default to allow continuous dragging
+      e.preventDefault();
+      e.stopPropagation();
+      touchHandledRef.current = true;
+      
+      // Start dragging - can start from a node or empty space
+      setIsDragging(true);
+      setDragStartNode(node);
+      lastVisitedNodeRef.current = node; // Track the starting node if we started on one
+      touchDragStateRef.current = { 
+        isDragging: true, 
+        dragStartNode: node, 
+        hasMoved: false,
+        lastVisitedNode: node
+      };
+      
+      // If we started on a node, visit it immediately (if valid)
+      // Only visit if it's not already visited (for houses) or if route is not empty (for north_pole)
       if (node) {
-        // Found a node - start potential drag (but mark that we haven't moved yet)
-        setIsDragging(true);
-        setDragStartNode(node);
-        touchDragStateRef.current = { isDragging: true, dragStartNode: node, hasMoved: false };
-      } else {
-        // No node found - clear any previous state
-        setIsDragging(false);
-        setDragStartNode(null);
-        touchDragStateRef.current = { isDragging: false, dragStartNode: null, hasMoved: false };
+        if (node.type === 'house' && state.visitedHouses && state.visitedHouses.has(node.id)) {
+          // Already visited, don't add
+        } else if (node.type === 'north_pole' && state.route && state.route.length === 0) {
+          // Can't start from north_pole with empty route
+        } else {
+          state.onNodeClick(node.x, node.y);
+        }
       }
     };
 
@@ -73,7 +96,7 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
       const touchState = touchDragStateRef.current;
       const state = stateRef.current;
       
-      if (!touchState.isDragging || !touchState.dragStartNode) {
+      if (!touchState.isDragging) {
         return;
       }
       
@@ -84,7 +107,7 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
       e.stopPropagation();
       
       const canvas = canvasRef.current;
-      if (!canvas) return;
+      if (!canvas || !state.puzzleData) return;
 
       if (e.touches && e.touches.length > 0) {
         const touch = e.touches[0];
@@ -96,10 +119,42 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
 
         const node = findNodeAt(state.puzzleData, x, y);
         
-        if (node && node !== touchState.dragStartNode) {
+        // Update drag target for visual feedback
+        if (node) {
           setDragTargetNode(node);
         } else {
           setDragTargetNode(null);
+        }
+        
+        // If we're near a node and it's different from the last one we visited, add it
+        if (node && !isSameNode(node, lastVisitedNodeRef.current)) {
+          // Check if this is a house that's already been visited - skip it
+          if (node.type === 'house' && state.visitedHouses && state.visitedHouses.has(node.id)) {
+            // Already visited, don't add again
+            return;
+          }
+          
+          // Check if this is the same as the last node in the route - skip it
+          if (state.route && state.route.length > 0) {
+            const lastRouteNode = state.route[state.route.length - 1];
+            if (isSameNode(node, lastRouteNode)) {
+              return;
+            }
+          }
+          
+          // Add this node to the route
+          lastVisitedNodeRef.current = node;
+          touchDragStateRef.current.lastVisitedNode = node;
+          
+          // Call onNodeClick to add the node
+          // Pass the last node in the route as fromNode if route exists, otherwise just click normally
+          if (state.route && state.route.length > 0) {
+            const lastRouteNode = state.route[state.route.length - 1];
+            state.onNodeClick(node.x, node.y, lastRouteNode);
+          } else {
+            // No route yet, just click normally (will handle starting from north_pole if needed)
+            state.onNodeClick(node.x, node.y);
+          }
         }
       }
     };
@@ -122,7 +177,8 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
         setIsDragging(false);
         setDragStartNode(null);
         setDragTargetNode(null);
-        touchDragStateRef.current = { isDragging: false, dragStartNode: null, hasMoved: false };
+        lastVisitedNodeRef.current = null;
+        touchDragStateRef.current = { isDragging: false, dragStartNode: null, hasMoved: false, lastVisitedNode: null };
         touchHandledRef.current = false;
         return;
       }
@@ -135,43 +191,22 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
       const y = (touch.clientY - rect.top) * scaleY;
 
       const endNode = findNodeAt(state.puzzleData, x, y);
-      
-      // Save the drag start node before resetting state
-      const startNode = touchState.dragStartNode;
       const hasMoved = touchState.hasMoved;
-      // Only treat as drag if we actually moved (touchMove was called)
-      const wasDragging = touchState.isDragging && startNode && hasMoved;
-
-      // Check if nodes match (same node)
-      const nodesMatch = startNode && endNode && (
-        (startNode.type === endNode.type && 
-         ((startNode.type === 'house' && startNode.id === endNode.id) ||
-          (startNode.type === 'north_pole' && startNode.x === endNode.x && startNode.y === endNode.y)))
-      );
 
       // Always reset state first
       setIsDragging(false);
       setDragStartNode(null);
       setDragTargetNode(null);
-      touchDragStateRef.current = { isDragging: false, dragStartNode: null, hasMoved: false };
+      lastVisitedNodeRef.current = null;
+      touchDragStateRef.current = { isDragging: false, dragStartNode: null, hasMoved: false, lastVisitedNode: null };
       touchHandledRef.current = false;
 
-      // Now handle the click based on what happened
-      if (!wasDragging || nodesMatch) {
-        // No drag was started, or dragged but ended on same node - treat as simple tap/click
-        if (endNode) {
-          state.onNodeClick(endNode.x, endNode.y);
-        } else {
-          state.onNodeClick(x, y);
-        }
-      } else {
-        // We had a drag (with movement) to a different node - handle drag end
-        if (endNode) {
-          // Dragged from one node to a different node
-          state.onNodeClick(endNode.x, endNode.y, startNode);
-        }
-        // If no endNode, user dragged off canvas - don't do anything
+      // If no movement occurred, treat as a simple tap/click
+      // (Nodes were already handled during drag in touchMoveHandler)
+      if (!hasMoved && endNode) {
+        state.onNodeClick(endNode.x, endNode.y);
       }
+      // If movement occurred, nodes were already handled during the drag, so nothing to do here
     };
 
     // Use native event listeners with { passive: false } to allow preventDefault
@@ -187,6 +222,32 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
       canvas.removeEventListener('touchcancel', touchEndHandler);
     };
   }, []); // Only attach once - handlers use refs for latest values
+
+  // Track scroll position to force re-render on scroll
+  const [scrollKey, setScrollKey] = useState(0);
+  
+  useEffect(() => {
+    // Listen for scroll events to trigger re-render
+    // Use requestAnimationFrame to batch updates and avoid excessive re-renders
+    let rafId = null;
+    const handleScroll = () => {
+      if (rafId === null) {
+        rafId = requestAnimationFrame(() => {
+          setScrollKey(prev => prev + 1);
+          rafId = null;
+        });
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -207,7 +268,16 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
       dragTargetNode,
       theme
     );
-  }, [puzzleData, route, visitedHouses, showingSolution, solutionRoute, solutionAnimationIndex, routeAnimationProgress, dragStartNode, dragTargetNode, theme]);
+  }, [puzzleData, route, visitedHouses, showingSolution, solutionRoute, solutionAnimationIndex, routeAnimationProgress, dragStartNode, dragTargetNode, theme, scrollKey]);
+
+  // Helper function to check if a node is the same as another
+  const isSameNode = useCallback((node1, node2) => {
+    if (!node1 || !node2) return false;
+    if (node1.type !== node2.type) return false;
+    if (node1.type === 'house') return node1.id === node2.id;
+    if (node1.type === 'north_pole') return node1.x === node2.x && node1.y === node2.y;
+    return false;
+  }, []);
 
   const handleMouseDown = (event) => {
     if (gameComplete) return;
@@ -217,52 +287,78 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
     const coords = getCanvasCoords(canvas, event);
     const node = findNodeAt(puzzleData, coords.x, coords.y);
 
+    // Start dragging - can start from a node or empty space
+    setIsDragging(true);
+    setDragStartNode(node);
+    lastVisitedNodeRef.current = node; // Track the starting node if we started on one
+    canvas.style.cursor = 'grabbing';
+    
+    // If we started on a node, visit it immediately (if valid)
+    // Only visit if it's not already visited (for houses) or if route is not empty (for north_pole)
     if (node) {
-      setIsDragging(true);
-      setDragStartNode(node);
-      canvas.style.cursor = 'grabbing';
+      if (node.type === 'house' && visitedHouses && visitedHouses.has(node.id)) {
+        // Already visited, don't add
+      } else if (node.type === 'north_pole' && route && route.length === 0) {
+        // Can't start from north_pole with empty route
+      } else {
+        onNodeClick(node.x, node.y);
+      }
     }
   };
 
   const handleMouseMove = (event) => {
-    if (!isDragging || !dragStartNode) return;
+    if (!isDragging) return;
 
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !puzzleData) return;
 
     const coords = getCanvasCoords(canvas, event);
     const node = findNodeAt(puzzleData, coords.x, coords.y);
 
-    if (node && node !== dragStartNode) {
+    // Update drag target for visual feedback
+    if (node) {
       setDragTargetNode(node);
     } else {
       setDragTargetNode(null);
     }
+    
+    // If we're near a node and it's different from the last one we visited, add it
+    if (node && !isSameNode(node, lastVisitedNodeRef.current)) {
+      // Check if this is a house that's already been visited - skip it
+      if (node.type === 'house' && visitedHouses && visitedHouses.has(node.id)) {
+        // Already visited, don't add again
+        return;
+      }
+      
+      // Check if this is the same as the last node in the route - skip it
+      if (route && route.length > 0) {
+        const lastRouteNode = route[route.length - 1];
+        if (isSameNode(node, lastRouteNode)) {
+          return;
+        }
+      }
+      
+      // Add this node to the route
+      lastVisitedNodeRef.current = node;
+      
+      // Call onNodeClick to add the node
+      // Pass the last node in the route as fromNode if route exists, otherwise just click normally
+      if (route && route.length > 0) {
+        const lastRouteNode = route[route.length - 1];
+        onNodeClick(node.x, node.y, lastRouteNode);
+      } else {
+        // No route yet, just click normally (will handle starting from north_pole if needed)
+        onNodeClick(node.x, node.y);
+      }
+    }
   };
 
   const handleMouseUp = (event) => {
-    if (!isDragging || !dragStartNode) {
-      setIsDragging(false);
-      setDragStartNode(null);
-      setDragTargetNode(null);
-      const canvas = canvasRef.current;
-      if (canvas) canvas.style.cursor = 'crosshair';
-      return;
-    }
-
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const coords = getCanvasCoords(canvas, event);
-    const node = findNodeAt(puzzleData, coords.x, coords.y);
-
-    if (node && node !== dragStartNode) {
-      onNodeClick(node.x, node.y, dragStartNode);
-    }
-
     setIsDragging(false);
     setDragStartNode(null);
     setDragTargetNode(null);
+    lastVisitedNodeRef.current = null;
+    const canvas = canvasRef.current;
     if (canvas) canvas.style.cursor = 'crosshair';
   };
 

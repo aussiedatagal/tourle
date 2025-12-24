@@ -88,7 +88,7 @@ export function saveScore(date, difficulty, scoreData) {
 export function getStatistics() {
   try {
     const stats = localStorage.getItem(STATS_KEY);
-    return stats ? JSON.parse(stats) : {
+    const defaultStats = {
       totalPuzzlesCompleted: 0,
       totalAttempts: 0,
       averageEfficiency: 0,
@@ -98,8 +98,25 @@ export function getStatistics() {
         medium: 0,
         hard: 0
       },
-      lastPlayed: null
+      lastPlayed: null,
+      currentStreak: 0,
+      bestStreak: 0,
+      lastCompletedDate: null
     };
+    
+    if (stats) {
+      const parsed = JSON.parse(stats);
+      // Ensure streak fields exist for backward compatibility
+      return {
+        ...defaultStats,
+        ...parsed,
+        currentStreak: parsed.currentStreak || 0,
+        bestStreak: parsed.bestStreak || 0,
+        lastCompletedDate: parsed.lastCompletedDate || null
+      };
+    }
+    
+    return defaultStats;
   } catch (error) {
     console.error('Error reading statistics:', error);
     return {
@@ -112,9 +129,35 @@ export function getStatistics() {
         medium: 0,
         hard: 0
       },
-      lastPlayed: null
+      lastPlayed: null,
+      currentStreak: 0,
+      bestStreak: 0,
+      lastCompletedDate: null
     };
   }
+}
+
+/**
+ * Get date string in YYYY-MM-DD format
+ */
+function getDateString(dateStr) {
+  // If dateStr is already in YYYY-MM-DD format, return it
+  if (dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    return dateStr;
+  }
+  // Otherwise, use today's date
+  const today = new Date();
+  return today.toISOString().split('T')[0];
+}
+
+/**
+ * Calculate days difference between two dates
+ */
+function daysDifference(date1, date2) {
+  const d1 = new Date(date1);
+  const d2 = new Date(date2);
+  const diffTime = Math.abs(d2 - d1);
+  return Math.floor(diffTime / (1000 * 60 * 60 * 24));
 }
 
 /**
@@ -143,6 +186,46 @@ function updateStatistics(scoreData) {
     }
     
     stats.lastPlayed = new Date().toISOString();
+    
+    // Update streak
+    const completedDate = getDateString(scoreData.date);
+    
+    if (stats.lastCompletedDate) {
+      if (completedDate === stats.lastCompletedDate) {
+        // Same day - don't change streak
+        // (user might have completed multiple difficulties on the same day)
+      } else {
+        // Different day - check if consecutive
+        const daysDiff = daysDifference(completedDate, stats.lastCompletedDate);
+        
+        // Check if completedDate is after lastCompletedDate
+        const lastDate = new Date(stats.lastCompletedDate);
+        const currentDate = new Date(completedDate);
+        const isAfter = currentDate > lastDate;
+        
+        if (isAfter && daysDiff === 1) {
+          // Consecutive day - increment streak
+          stats.currentStreak += 1;
+          stats.lastCompletedDate = completedDate;
+        } else if (isAfter && daysDiff > 1) {
+          // Streak broken - reset to 1 (this completion starts a new streak)
+          stats.currentStreak = 1;
+          stats.lastCompletedDate = completedDate;
+        } else if (!isAfter) {
+          // Completed an older date - don't update streak or lastCompletedDate
+          // (user is playing a past puzzle, shouldn't affect current streak)
+        }
+      }
+    } else {
+      // First completion - start streak at 1
+      stats.currentStreak = 1;
+      stats.lastCompletedDate = completedDate;
+    }
+    
+    // Update best streak
+    if (stats.currentStreak > stats.bestStreak) {
+      stats.bestStreak = stats.currentStreak;
+    }
     
     localStorage.setItem(STATS_KEY, JSON.stringify(stats));
   } catch (error) {

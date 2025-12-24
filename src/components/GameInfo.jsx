@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { DifficultySelector } from './DifficultySelector';
-import { getBestScore } from '../utils/scoreStorage';
+import { getBestScore, getStatistics } from '../utils/scoreStorage';
 
 export function GameInfo({ 
   puzzleData, 
@@ -37,6 +37,9 @@ export function GameInfo({
     const difficultyLabel = selectedDifficulty.charAt(0).toUpperCase() + selectedDifficulty.slice(1);
     const efficiencyNum = parseFloat(efficiency.replace('%', ''));
     
+    // Get overview statistics
+    const stats = getStatistics();
+    
     // Choose emoji based on efficiency
     let emoji = '🎯';
     if (efficiencyNum >= 95) emoji = '🌟';
@@ -47,12 +50,32 @@ export function GameInfo({
     
     let shareText = `🎄 Travelling Salesman Puzzle ${cleanDate} (${difficultyLabel}) ${emoji}\n\n`;
     
+    // Current puzzle stats
     shareText += `📏 Distance: ${currentDistance.toFixed(2)}\n`;
     shareText += `⭐ Optimal: ${puzzleData.optimal_distance.toFixed(2)}\n`;
     shareText += `📊 Efficiency: ${efficiency}\n`;
     if (attempts > 0) {
       shareText += `🎯 Attempts: ${attempts}\n`;
     }
+    
+    // Overview stats
+    if (stats && stats.totalPuzzlesCompleted > 0) {
+      shareText += `\n📈 Overall Stats:\n`;
+      shareText += `   • Puzzles Completed: ${stats.totalPuzzlesCompleted}\n`;
+      if (stats.currentStreak > 0) {
+        shareText += `   • Current Streak: 🔥 ${stats.currentStreak} day${stats.currentStreak !== 1 ? 's' : ''}\n`;
+      }
+      if (stats.bestStreak > 0) {
+        shareText += `   • Best Streak: ⭐ ${stats.bestStreak} day${stats.bestStreak !== 1 ? 's' : ''}\n`;
+      }
+      shareText += `   • Total Attempts: ${stats.totalAttempts}\n`;
+      shareText += `   • Average Efficiency: ${stats.averageEfficiency.toFixed(2)}%\n`;
+      shareText += `   • Best Efficiency: ${stats.bestEfficiency.toFixed(2)}%\n`;
+      if (stats.puzzlesByDifficulty) {
+        shareText += `   • By Difficulty: Easy ${stats.puzzlesByDifficulty.easy}, Medium ${stats.puzzlesByDifficulty.medium}, Hard ${stats.puzzlesByDifficulty.hard}\n`;
+      }
+    }
+    
     shareText += `\n🔗 ${shareUrl}`;
 
     try {

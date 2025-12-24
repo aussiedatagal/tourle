@@ -47,6 +47,14 @@ export function Statistics({ puzzleData, selectedDifficulty, theme, isOpen, onCl
                   <span className="stat-value">{stats.totalPuzzlesCompleted}</span>
                 </div>
                 <div className="stat-item">
+                  <span className="stat-label">Current Streak</span>
+                  <span className="stat-value">🔥 {stats.currentStreak || 0}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Best Streak</span>
+                  <span className="stat-value">⭐ {stats.bestStreak || 0}</span>
+                </div>
+                <div className="stat-item">
                   <span className="stat-label">Total Attempts</span>
                   <span className="stat-value">{stats.totalAttempts}</span>
                 </div>
