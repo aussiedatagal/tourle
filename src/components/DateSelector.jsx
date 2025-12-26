@@ -17,9 +17,15 @@ export function DateSelector({ selectedDate, onDateChange, theme, difficulty = '
   // Discover available puzzle dates
   useEffect(() => {
     setIsLoading(true);
-    // Default to December 2025, but could be made more flexible
-    const year = '2025';
-    const month = '12';
+    // Use the selected date's year/month, or default to today
+    let year, month;
+    if (selectedDate) {
+      [year, month] = selectedDate.split('-');
+    } else {
+      const today = new Date();
+      year = String(today.getFullYear());
+      month = String(today.getMonth() + 1).padStart(2, '0');
+    }
     
     discoverAvailableDates(year, month, difficulty)
       .then(days => {
@@ -28,20 +34,26 @@ export function DateSelector({ selectedDate, onDateChange, theme, difficulty = '
       })
       .catch(error => {
         console.error('Error discovering available dates:', error);
-        // Fallback to days 1-24 if discovery fails
-        setAvailableDays(Array.from({ length: 24 }, (_, i) => i + 1));
+        // Fallback to days 1-31 if discovery fails
+        setAvailableDays(Array.from({ length: 31 }, (_, i) => i + 1));
         setIsLoading(false);
       });
-  }, [difficulty]);
+  }, [difficulty, selectedDate]);
 
   const availableDates = useMemo(() => {
     const dates = [];
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December'];
     
-    // Group by year-month for better organization
-    const year = '2025';
-    const month = '12';
+    // Use the selected date's year/month, or default to today
+    let year, month;
+    if (selectedDate) {
+      [year, month] = selectedDate.split('-');
+    } else {
+      const today = new Date();
+      year = String(today.getFullYear());
+      month = String(today.getMonth() + 1).padStart(2, '0');
+    }
     const monthName = monthNames[parseInt(month) - 1];
     
     availableDays.forEach(day => {
@@ -54,7 +66,7 @@ export function DateSelector({ selectedDate, onDateChange, theme, difficulty = '
     });
     
     return dates;
-  }, [availableDays]);
+  }, [availableDays, selectedDate]);
 
   const handleDateChange = (e) => {
     const newDate = e.target.value;

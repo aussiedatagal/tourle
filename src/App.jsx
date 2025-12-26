@@ -25,13 +25,17 @@ function App() {
     const savedDate = localStorage.getItem('tsp-selected-date');
     if (savedDate) {
       const [year, month, day] = savedDate.split('-');
-      // Validate that it's a reasonable date (2025-12-XX)
-      if (year === '2025' && month === '12' && parseInt(day) >= 1 && parseInt(day) <= 31) {
+      // Validate that it's a reasonable date
+      if (year && month && day && parseInt(day) >= 1 && parseInt(day) <= 31) {
         return savedDate;
       }
     }
-    // Don't auto-select a date - let user choose
-    return null;
+    // Default to today's date
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   });
 
   const [selectedDifficulty, setSelectedDifficulty] = useState(() => {
