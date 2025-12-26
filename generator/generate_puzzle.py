@@ -2,8 +2,17 @@
 """
 Santa's Sleigh Route Puzzle Generator
 
-Generates daily TSP puzzles with optimal solutions.
+Generates daily TSP puzzles with guaranteed optimal solutions.
 Saves puzzles in puzzles/YYYY/MM/DD.json format.
+
+OPTIMALITY GUARANTEE:
+- Uses exact solver (dynamic programming) for puzzles up to 17 nodes (16 houses)
+- All current puzzle sizes (easy: 6-8, medium: 10-12, hard: 14-16 houses) use exact solver
+- Solutions are mathematically proven optimal, not heuristic approximations
+
+VERIFICATION:
+- Use verify_puzzle_optimality.py to verify existing puzzles
+- Use fix_suboptimal_puzzles.py to fix any puzzles that were created with heuristics
 """
 
 import json
@@ -14,7 +23,6 @@ from pathlib import Path
 import random
 import numpy as np
 from python_tsp.exact import solve_tsp_dynamic_programming
-from python_tsp.heuristics import solve_tsp_simulated_annealing
 
 
 def generate_coordinates(num_houses, grid_size=1000, margin=None, grid_spacing=100, north_pole=None):
@@ -130,23 +138,24 @@ def solve_tsp(north_pole, houses):
     """
     Solve TSP problem to find optimal route.
     Returns the optimal distance and route.
+    
+    Uses exact solver for problems up to 17 nodes (16 houses).
+    For larger problems, raises an error - use constructive generation instead.
     """
     distance_matrix = calculate_distance_matrix(north_pole, houses)
-    
-    # Try exact solution first (for smaller problems)
     num_nodes = len(houses) + 1  # +1 for North Pole
     
-    if num_nodes <= 13:
-        # Use exact solution for smaller problems
+    # Use exact solution for problems up to 17 nodes (tested to work in reasonable time)
+    if num_nodes <= 17:
         try:
             permutation, distance = solve_tsp_dynamic_programming(distance_matrix)
             return distance, permutation
         except Exception as e:
-            print(f"Exact solution failed: {e}, falling back to heuristic")
+            print(f"Exact solution failed: {e}")
+            raise
     
-    # Use heuristic for larger problems
-    permutation, distance = solve_tsp_simulated_annealing(distance_matrix)
-    return distance, permutation
+    # For larger problems, raise an error
+    raise ValueError(f"Puzzle too large for exact solver ({num_nodes} nodes). Maximum supported: 17 nodes (16 houses).")
 
 
 def generate_puzzle(date=None, num_houses=None):

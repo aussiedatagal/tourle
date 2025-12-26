@@ -49,6 +49,18 @@ export function useGameState(selectedDate = null, difficulty = 'medium') {
 
     if (first.type === 'north_pole' && last.type === 'north_pole') {
       if (visitedHouses.size === puzzleData.houses.length) {
+        // Validate that each house appears exactly once in the route
+        const houseIdsInRoute = route
+          .filter(node => node.type === 'house')
+          .map(node => node.id);
+        const uniqueHouseIds = new Set(houseIdsInRoute);
+        
+        if (uniqueHouseIds.size !== puzzleData.houses.length || houseIdsInRoute.length !== puzzleData.houses.length) {
+          // Invalid route: houses are duplicated or missing
+          console.warn('Invalid route: houses are not visited exactly once');
+          return;
+        }
+        
         // Count this as a completed attempt if it was a full attempt and not already complete
         if (!gameComplete && currentAttemptStarted) {
           setAttempts(prev => prev + 1);
@@ -59,16 +71,41 @@ export function useGameState(selectedDate = null, difficulty = 'medium') {
         if (!gameComplete) {
           const cleanDate = puzzleData.date.replace(' (Test)', '');
           const currentDist = calculateDistance(route);
-          const efficiencyValue = (Math.min((puzzleData.optimal_distance / currentDist) * 100, 100)).toFixed(2) + '%';
           const finalAttempts = attempts + (currentAttemptStarted ? 1 : 0);
           
-          saveScore(cleanDate, difficulty, {
-            distance: currentDist,
-            optimalDistance: puzzleData.optimal_distance,
-            efficiency: efficiencyValue,
-            attempts: finalAttempts > 0 ? finalAttempts : 1,
-            timestamp: Date.now()
-          });
+          // Check if user found a better solution than the stored optimal
+          // This can happen for larger puzzles where the generator uses heuristics
+          if (currentDist < puzzleData.optimal_distance) {
+            const improvement = puzzleData.optimal_distance - currentDist;
+            const improvementPercent = ((improvement / puzzleData.optimal_distance) * 100).toFixed(2);
+            console.warn(
+              `User found a better solution! ` +
+              `Stored optimal: ${puzzleData.optimal_distance.toFixed(2)}, ` +
+              `User solution: ${currentDist.toFixed(2)} ` +
+              `(${improvementPercent}% better)`
+            );
+            // Use the user's distance as the new optimal for efficiency calculation
+            // but still save the original optimal_distance for reference
+            const efficiencyValue = '100.00%';
+            
+            saveScore(cleanDate, difficulty, {
+              distance: currentDist,
+              optimalDistance: currentDist, // Update to user's better solution
+              efficiency: efficiencyValue,
+              attempts: finalAttempts > 0 ? finalAttempts : 1,
+              timestamp: Date.now()
+            });
+          } else {
+            const efficiencyValue = (Math.min((puzzleData.optimal_distance / currentDist) * 100, 100)).toFixed(2) + '%';
+            
+            saveScore(cleanDate, difficulty, {
+              distance: currentDist,
+              optimalDistance: puzzleData.optimal_distance,
+              efficiency: efficiencyValue,
+              attempts: finalAttempts > 0 ? finalAttempts : 1,
+              timestamp: Date.now()
+            });
+          }
         }
         
         setGameComplete(true);

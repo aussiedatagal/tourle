@@ -464,19 +464,77 @@ h1 {
     left: 0;
 }
 
-.win-message {
-    text-align: center;
-    background: linear-gradient(135deg, rgba(196, 30, 58, 0.3) 0%, rgba(139, 21, 56, 0.3) 100%);
+.win-message-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
     padding: 20px;
-    border-radius: 15px;
-    margin: 20px auto;
-    max-width: 600px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    animation: slideIn 0.5s ease;
+    overflow-y: auto;
 }
 
-.win-message.hidden {
-    display: none;
+.win-message-modal {
+    background: linear-gradient(135deg, #1a1f3a 0%, #0a0e27 100%);
+    border-radius: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    animation: slideIn 0.3s ease;
+}
+
+.win-message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.win-message-header h2 {
+    margin: 0;
+    font-size: 2em;
+    color: #ffd700;
+}
+
+.win-message-close {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 2em;
+    cursor: pointer;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.win-message-close:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.win-message-content {
+    padding: 20px;
+    text-align: center;
+}
+
+.win-message-content p {
+    font-size: 1.2em;
+    margin-bottom: 15px;
+    color: #fff;
 }
 
 .return-reminder {
@@ -512,21 +570,51 @@ h1 {
     }
 }
 
-.win-message h2 {
-    font-size: 2em;
-    margin-bottom: 15px;
-}
-
-.win-message p {
-    font-size: 1.2em;
-    margin-bottom: 10px;
-}
-
 .efficiency-result {
     font-size: 1.5em !important;
     font-weight: bold;
     color: #ffd700;
     margin-top: 15px !important;
+    margin-bottom: 20px !important;
+}
+
+.win-message-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.win-stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.win-stat-item:last-child {
+    border-bottom: none;
+}
+
+.win-stat-label {
+    font-weight: bold;
+    color: #ccc;
+}
+
+.win-stat-item span:last-child {
+    color: #fff;
+    font-size: 1.1em;
+}
+
+.win-message-actions {
+    margin-top: 25px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
 }
 
 @keyframes slideIn {
@@ -625,6 +713,36 @@ h1 {
     .instructions-content {
         padding: 15px;
         font-size: 1em;
+    }
+
+    .win-message-modal {
+        max-width: 95%;
+        margin: 10px;
+    }
+
+    .win-message-header {
+        padding: 15px;
+    }
+
+    .win-message-header h2 {
+        font-size: 1.5em;
+    }
+
+    .win-message-content {
+        padding: 15px;
+        font-size: 1em;
+    }
+
+    .win-message-stats {
+        padding: 10px;
+    }
+
+    .win-message-actions {
+        flex-direction: column;
+    }
+
+    .win-message-actions .btn {
+        width: 100%;
     }
 
     .btn-instructions {

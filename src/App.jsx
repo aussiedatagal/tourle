@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useGameState } from './hooks/useGameState';
 import { GameCanvas } from './components/GameCanvas';
 import { GameInfo } from './components/GameInfo';
@@ -58,6 +58,8 @@ function App() {
     }
     return false;
   });
+  const [showWinMessage, setShowWinMessage] = useState(false);
+  const winMessageDismissedRef = useRef(false);
 
   useEffect(() => {
     if (selectedDate) {
@@ -89,6 +91,17 @@ function App() {
     resetRoute,
     toggleSolution
   } = useGameState(selectedDate, selectedDifficulty);
+
+  // Show win message popup when game is completed (only once per completion)
+  useEffect(() => {
+    if (gameComplete && !showWinMessage && !winMessageDismissedRef.current) {
+      setShowWinMessage(true);
+      winMessageDismissedRef.current = false; // Reset when showing
+    } else if (!gameComplete) {
+      setShowWinMessage(false);
+      winMessageDismissedRef.current = false; // Reset when game is reset
+    }
+  }, [gameComplete, showWinMessage]);
 
   const finalEfficiency = gameComplete ? efficiency : '-';
 
@@ -152,8 +165,23 @@ function App() {
 
       <WinMessage
         efficiency={finalEfficiency}
-        isVisible={gameComplete}
+        isVisible={showWinMessage}
         theme={theme}
+        puzzleData={puzzleData}
+        currentDistance={currentDistance}
+        attempts={attempts}
+        selectedDifficulty={selectedDifficulty}
+        onClose={(close) => {
+          setShowWinMessage(close);
+          if (!close) {
+            winMessageDismissedRef.current = true;
+          }
+        }}
+        onTryAgain={() => {
+          resetRoute();
+          setShowWinMessage(false);
+          winMessageDismissedRef.current = false;
+        }}
       />
 
       <ReturnReminder isVisible={showReminder} theme={theme} />

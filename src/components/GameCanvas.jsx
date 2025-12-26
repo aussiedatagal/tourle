@@ -239,15 +239,54 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
       }
     };
     
+    // Listen to scroll on window, document, and document.documentElement
+    // This ensures we catch scroll events on mobile devices
     window.addEventListener('scroll', handleScroll, { passive: true });
+    document.addEventListener('scroll', handleScroll, { passive: true });
+    document.documentElement.addEventListener('scroll', handleScroll, { passive: true });
+    
+    // Also listen to visibility change to re-render when tab becomes visible
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        setScrollKey(prev => prev + 1);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     
     return () => {
       window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('scroll', handleScroll);
+      document.documentElement.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (rafId !== null) {
         cancelAnimationFrame(rafId);
       }
     };
   }, []);
+
+  // Use IntersectionObserver to re-render when canvas becomes visible
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && puzzleData) {
+            // Force re-render when canvas becomes visible
+            setScrollKey(prev => prev + 1);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(canvas);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [puzzleData]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
