@@ -25,20 +25,13 @@ function App() {
     const savedDate = localStorage.getItem('tsp-selected-date');
     if (savedDate) {
       const [year, month, day] = savedDate.split('-');
-      if (year === '2025' && month === '12' && parseInt(day) >= 1 && parseInt(day) <= 24) {
+      // Validate that it's a reasonable date (2025-12-XX)
+      if (year === '2025' && month === '12' && parseInt(day) >= 1 && parseInt(day) <= 31) {
         return savedDate;
       }
     }
-
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth() + 1;
-    const day = today.getDate();
-
-    if (year === 2025 && month === 12 && day <= 24) {
-      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    }
-    return '2025-12-24';
+    // Don't auto-select a date - let user choose
+    return null;
   });
 
   const [selectedDifficulty, setSelectedDifficulty] = useState(() => {
@@ -161,6 +154,7 @@ function App() {
         selectedDate={selectedDate}
         onDateChange={setSelectedDate}
         theme={theme}
+        difficulty={selectedDifficulty}
       />
 
       <WinMessage
@@ -179,6 +173,11 @@ function App() {
         }}
         onTryAgain={() => {
           resetRoute();
+          setShowWinMessage(false);
+          winMessageDismissedRef.current = false;
+        }}
+        onDifficultyChange={(newDifficulty) => {
+          setSelectedDifficulty(newDifficulty);
           setShowWinMessage(false);
           winMessageDismissedRef.current = false;
         }}

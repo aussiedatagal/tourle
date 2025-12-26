@@ -11,7 +11,8 @@ export function WinMessage({
   attempts, 
   selectedDifficulty,
   onClose,
-  onTryAgain
+  onTryAgain,
+  onDifficultyChange
 }) {
   const hasTriggeredConfetti = useRef(false);
   const [shareCopied, setShareCopied] = useState(false);
@@ -136,6 +137,24 @@ export function WinMessage({
     }
   };
 
+  const handleNextDifficulty = () => {
+    if (selectedDifficulty === 'easy' && onDifficultyChange) {
+      onDifficultyChange('medium');
+      if (onClose) {
+        onClose(false);
+      }
+    } else if (selectedDifficulty === 'medium' && onDifficultyChange) {
+      onDifficultyChange('hard');
+      if (onClose) {
+        onClose(false);
+      }
+    }
+  };
+
+  // Determine if we should show next difficulty prompt
+  const showNextDifficultyPrompt = selectedDifficulty === 'easy' || selectedDifficulty === 'medium';
+  const nextDifficulty = selectedDifficulty === 'easy' ? 'Medium' : selectedDifficulty === 'medium' ? 'Hard' : null;
+
   if (!isVisible) return null;
 
   return (
@@ -170,6 +189,18 @@ export function WinMessage({
                   <span>{attempts}</span>
                 </div>
               )}
+            </div>
+          )}
+          {showNextDifficultyPrompt && (
+            <div className="win-message-difficulty-prompt">
+              <p>Great job! Ready for a bigger challenge?</p>
+              <button
+                className="btn btn-primary"
+                onClick={handleNextDifficulty}
+                title={`Try ${nextDifficulty} difficulty`}
+              >
+                Try {nextDifficulty} Difficulty
+              </button>
             </div>
           )}
           <div className="win-message-actions">

@@ -89,3 +89,49 @@ export async function loadSolution(puzzleDate, difficulty = 'medium') {
   }
 }
 
+/**
+ * Check if a puzzle exists for a given date and difficulty
+ */
+async function checkPuzzleExists(year, month, day, difficulty = 'medium') {
+  const puzzlePath = `${BASE_URL}puzzles/${year}/${month}/${day}_${difficulty}.json`;
+  try {
+    const response = await fetch(puzzlePath, { method: 'GET', cache: 'no-cache' });
+    if (response.ok) return true;
+  } catch (error) {
+    // Ignore
+  }
+  
+  // Try legacy format (without difficulty)
+  const legacyPath = `${BASE_URL}puzzles/${year}/${month}/${day}.json`;
+  try {
+    const response = await fetch(legacyPath, { method: 'GET', cache: 'no-cache' });
+    if (response.ok) return true;
+  } catch (error) {
+    // Ignore
+  }
+  
+  return false;
+}
+
+/**
+ * Discover available puzzle dates for a given year and month
+ * Returns an array of day numbers (1-31) that have puzzles available
+ */
+export async function discoverAvailableDates(year, month, difficulty = 'medium') {
+  const availableDays = [];
+  const maxDays = 31; // Check up to 31 days
+  
+  // Check all days in parallel for better performance
+  const checks = [];
+  for (let day = 1; day <= maxDays; day++) {
+    const dayStr = String(day).padStart(2, '0');
+    checks.push(
+      checkPuzzleExists(year, month, dayStr, difficulty)
+        .then(exists => exists ? day : null)
+    );
+  }
+  
+  const results = await Promise.all(checks);
+  return results.filter(day => day !== null).sort((a, b) => a - b);
+}
+

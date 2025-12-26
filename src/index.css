@@ -610,6 +610,39 @@ h1 {
     font-size: 1.1em;
 }
 
+.win-message-difficulty-prompt {
+    margin: 20px 0;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 165, 0, 0.15) 100%);
+    border-radius: 10px;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.win-message-difficulty-prompt p {
+    margin-bottom: 15px;
+    color: #ffd700;
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+.win-message-difficulty-prompt .btn-primary {
+    background: linear-gradient(135deg, #ffd700 0%, #ffa500 100%);
+    color: #0a0e27;
+    font-weight: bold;
+    padding: 12px 24px;
+    font-size: 1.1em;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+}
+
+.win-message-difficulty-prompt .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
+}
+
 .win-message-actions {
     margin-top: 25px;
     display: flex;

@@ -20,11 +20,27 @@ export function useGameState(selectedDate = null, difficulty = 'medium') {
   const routeAnimationRef = useRef(null);
 
   useEffect(() => {
-    const dateObj = selectedDate ? {
+    // Don't load puzzle if no date is selected
+    if (!selectedDate) {
+      setPuzzleData(null);
+      setRoute([]);
+      setVisitedHouses(new Set());
+      setGameComplete(false);
+      setShowReminder(false);
+      setShowingSolution(false);
+      setSolutionRoute(null);
+      setSolutionAnimationIndex(0);
+      setRouteAnimationProgress(1);
+      setAttempts(0);
+      setCurrentAttemptStarted(false);
+      return;
+    }
+
+    const dateObj = {
       year: selectedDate.split('-')[0],
       month: selectedDate.split('-')[1],
       day: selectedDate.split('-')[2]
-    } : null;
+    };
 
     loadPuzzle(dateObj, difficulty).then(({ puzzleData }) => {
       setPuzzleData(puzzleData);
