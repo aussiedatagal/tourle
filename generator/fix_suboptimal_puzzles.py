@@ -114,7 +114,7 @@ def main():
     
     if args.all:
         # Find and fix all suboptimal puzzles
-        puzzles_dir = Path(__file__).parent.parent / 'puzzles'
+        puzzles_dir = Path(__file__).parent.parent / 'public' / 'puzzles'
         puzzle_files = list(puzzles_dir.rglob('*_easy.json')) + \
                       list(puzzles_dir.rglob('*_medium.json')) + \
                       list(puzzles_dir.rglob('*_hard.json'))

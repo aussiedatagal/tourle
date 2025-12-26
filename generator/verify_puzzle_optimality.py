@@ -110,7 +110,7 @@ def main():
     
     if sys.argv[1] == '--all':
         # Verify all puzzles in puzzles directory
-        puzzles_dir = Path(__file__).parent.parent / 'puzzles'
+        puzzles_dir = Path(__file__).parent.parent / 'public' / 'puzzles'
         puzzle_files = list(puzzles_dir.rglob('*_easy.json')) + \
                       list(puzzles_dir.rglob('*_medium.json')) + \
                       list(puzzles_dir.rglob('*_hard.json'))

@@ -2,8 +2,10 @@ name: Generate Daily Puzzle
 
 on:
   schedule:
-    # Run daily at 00:00 UTC
-    - cron: '0 0 * * *'
+    # Run daily at 00:00 in the most future timezone (UTC+14: Line Islands, Kiribati)
+    # This is 10:00 UTC the previous day (midnight UTC+14 = 10:00 UTC previous day)
+    # This ensures puzzles are available for the latest timezone when their day starts
+    - cron: '0 10 * * *'
   workflow_dispatch: # Allow manual triggering
 
 jobs:
@@ -31,13 +33,13 @@ jobs:
           cd generator
           python generate_puzzle.py
         env:
-          TZ: UTC
+          TZ: Pacific/Kiritimati
       
       - name: Commit and push puzzle
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add puzzles/
-          git diff --staged --quiet || git commit -m "Generate puzzle for $(date -u +%Y-%m-%d)"
+          git add public/puzzles/
+          TZ=Pacific/Kiritimati git diff --staged --quiet || git commit -m "Generate puzzle for $(TZ=Pacific/Kiritimati date +%Y-%m-%d)"
           git push
 

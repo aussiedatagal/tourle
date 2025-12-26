@@ -255,7 +255,7 @@ def main():
     year = date.strftime('%Y')
     month = date.strftime('%m')
     day = date.strftime('%d')
-    base_path = Path(__file__).parent.parent / 'puzzles' / year / month
+    base_path = Path(__file__).parent.parent / 'public' / 'puzzles' / year / month
     
     # Define difficulty levels with house count ranges
     difficulties = [
