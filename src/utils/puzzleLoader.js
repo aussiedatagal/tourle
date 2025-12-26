@@ -20,7 +20,7 @@ export async function loadPuzzle(date = null, difficulty = 'medium') {
     const puzzleData = await response.json();
     return { puzzleData, isTest: false };
   } catch (error) {
-    console.warn(`Puzzle for ${puzzlePath} not found, using fallback`);
+    console.warn(`Puzzle for ${puzzlePath} not found, trying fallback`);
     // Try legacy format (without difficulty) for backward compatibility
     const legacyPath = `${BASE_URL}puzzles/${date.year}/${date.month}/${date.day}.json`;
     try {
@@ -33,7 +33,34 @@ export async function loadPuzzle(date = null, difficulty = 'medium') {
       // Continue to fallback puzzle
     }
     
-    // Try fallback puzzle with difficulty
+    // Try to find the most recent available puzzle before the requested date
+    const mostRecent = await findMostRecentPuzzle(date.year, date.month, date.day, difficulty);
+    if (mostRecent) {
+      const recentPath = `${BASE_URL}puzzles/${mostRecent.year}/${mostRecent.month}/${mostRecent.day}_${difficulty}.json`;
+      try {
+        const recentResponse = await fetch(recentPath);
+        if (recentResponse.ok) {
+          const puzzleData = await recentResponse.json();
+          return { puzzleData: { ...puzzleData, date: puzzleData.date + ' (Fallback)' }, isTest: true };
+        }
+      } catch (recentError) {
+        // Continue to hardcoded fallback
+      }
+      
+      // Try legacy format for most recent
+      const recentLegacyPath = `${BASE_URL}puzzles/${mostRecent.year}/${mostRecent.month}/${mostRecent.day}.json`;
+      try {
+        const recentLegacyResponse = await fetch(recentLegacyPath);
+        if (recentLegacyResponse.ok) {
+          const puzzleData = await recentLegacyResponse.json();
+          return { puzzleData: { ...puzzleData, date: puzzleData.date + ' (Fallback)' }, isTest: true };
+        }
+      } catch (recentLegacyError) {
+        // Continue to hardcoded fallback
+      }
+    }
+    
+    // Final fallback: use December 24th (hardcoded)
     const fallbackPath = `${BASE_URL}puzzles/2025/12/24_${difficulty}.json`;
     try {
       const fallbackResponse = await fetch(fallbackPath);
@@ -114,6 +141,27 @@ async function checkPuzzleExists(year, month, day, difficulty = 'medium') {
 }
 
 /**
+ * Find the most recent available puzzle before the given date
+ * Returns { year, month, day } or null if none found
+ */
+async function findMostRecentPuzzle(year, month, day, difficulty = 'medium') {
+  const requestedDay = parseInt(day);
+  
+  // Check backwards from the requested day
+  for (let d = requestedDay - 1; d >= 1; d--) {
+    const dayStr = String(d).padStart(2, '0');
+    if (await checkPuzzleExists(year, month, dayStr, difficulty)) {
+      return { year, month, day: dayStr };
+    }
+  }
+  
+  // If nothing found in current month, try previous month
+  // For simplicity, we'll just return null and let the caller use a hardcoded fallback
+  // In a more sophisticated implementation, we could check previous months
+  return null;
+}
+
+/**
  * Discover available puzzle dates for a given year and month
  * Returns an array of day numbers (1-31) that have puzzles available
  */
@@ -133,5 +181,35 @@ export async function discoverAvailableDates(year, month, difficulty = 'medium')
   
   const results = await Promise.all(checks);
   return results.filter(day => day !== null).sort((a, b) => a - b);
+}
+
+/**
+ * Get the most recent available puzzle date (today or the most recent before today)
+ * Returns a date string in YYYY-MM-DD format, or null if no puzzles exist
+ */
+export async function getMostRecentAvailableDate(difficulty = 'medium') {
+  const today = new Date();
+  const year = String(today.getFullYear());
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = today.getDate();
+  
+  // Check if today's puzzle exists
+  const todayStr = String(day).padStart(2, '0');
+  if (await checkPuzzleExists(year, month, todayStr, difficulty)) {
+    return `${year}-${month}-${todayStr}`;
+  }
+  
+  // Find the most recent available puzzle before today
+  const availableDays = await discoverAvailableDates(year, month, difficulty);
+  if (availableDays.length > 0) {
+    // Filter to only days before today
+    const pastDays = availableDays.filter(d => d < day);
+    if (pastDays.length > 0) {
+      const mostRecentDay = pastDays[pastDays.length - 1];
+      return `${year}-${month}-${String(mostRecentDay).padStart(2, '0')}`;
+    }
+  }
+  
+  return null;
 }
 

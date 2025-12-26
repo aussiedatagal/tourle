@@ -10,6 +10,7 @@ import { DateSelector } from './components/DateSelector';
 import { Instructions } from './components/Instructions';
 import { Statistics } from './components/Statistics';
 import { themes } from './themes';
+import { getMostRecentAvailableDate } from './utils/puzzleLoader';
 
 function App() {
   const [theme, setTheme] = useState(() => {
@@ -21,22 +22,8 @@ function App() {
     localStorage.setItem('tsp-theme', theme.name);
   }, [theme]);
 
-  const [selectedDate, setSelectedDate] = useState(() => {
-    const savedDate = localStorage.getItem('tsp-selected-date');
-    if (savedDate) {
-      const [year, month, day] = savedDate.split('-');
-      // Validate that it's a reasonable date
-      if (year && month && day && parseInt(day) >= 1 && parseInt(day) <= 31) {
-        return savedDate;
-      }
-    }
-    // Default to today's date
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  });
+  const [selectedDate, setSelectedDate] = useState(null); // Will be set in useEffect
+  const [isInitializing, setIsInitializing] = useState(true);
 
   const [selectedDifficulty, setSelectedDifficulty] = useState(() => {
     const savedDifficulty = localStorage.getItem('tsp-selected-difficulty');
@@ -44,6 +31,48 @@ function App() {
       ? savedDifficulty
       : 'medium';
   });
+
+  // Initialize selectedDate: check saved date, then today, then most recent available
+  useEffect(() => {
+    const initializeDate = async () => {
+      const savedDate = localStorage.getItem('tsp-selected-date');
+      if (savedDate) {
+        const [year, month, day] = savedDate.split('-');
+        // Validate that it's a reasonable date
+        if (year && month && day && parseInt(day) >= 1 && parseInt(day) <= 31) {
+          // Check if saved date is today - if not, use most recent available
+          const today = new Date();
+          const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+          if (savedDate === todayStr) {
+            // Check if today's puzzle exists
+            const mostRecent = await getMostRecentAvailableDate(selectedDifficulty);
+            if (mostRecent) {
+              setSelectedDate(mostRecent);
+              setIsInitializing(false);
+              return;
+            }
+          } else {
+            // Saved date is not today, use most recent available instead
+            const mostRecent = await getMostRecentAvailableDate(selectedDifficulty);
+            if (mostRecent) {
+              setSelectedDate(mostRecent);
+              setIsInitializing(false);
+              return;
+            }
+          }
+        }
+      }
+      
+      // No valid saved date, use most recent available
+      const mostRecent = await getMostRecentAvailableDate(selectedDifficulty);
+      if (mostRecent) {
+        setSelectedDate(mostRecent);
+      }
+      setIsInitializing(false);
+    };
+    
+    initializeDate();
+  }, [selectedDifficulty]);
 
   const [showStatistics, setShowStatistics] = useState(false);
   const [showInstructions, setShowInstructions] = useState(() => {

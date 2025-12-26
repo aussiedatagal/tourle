@@ -27,15 +27,41 @@ export function DateSelector({ selectedDate, onDateChange, theme, difficulty = '
       month = String(today.getMonth() + 1).padStart(2, '0');
     }
     
+    const today = new Date();
+    const todayYear = today.getFullYear();
+    const todayMonth = today.getMonth() + 1;
+    const todayDay = today.getDate();
+    
     discoverAvailableDates(year, month, difficulty)
       .then(days => {
-        setAvailableDays(days);
+        // Filter out future dates - only show dates that are today or in the past
+        const filteredDays = days.filter(day => {
+          const dateYear = parseInt(year);
+          const dateMonth = parseInt(month);
+          const dateDay = day;
+          
+          // If it's a different year/month, we need to check if it's in the past
+          if (dateYear < todayYear) return true;
+          if (dateYear > todayYear) return false;
+          if (dateMonth < todayMonth) return true;
+          if (dateMonth > todayMonth) return false;
+          // Same year and month - only show today or past days
+          return dateDay <= todayDay;
+        });
+        
+        setAvailableDays(filteredDays);
         setIsLoading(false);
       })
       .catch(error => {
         console.error('Error discovering available dates:', error);
-        // Fallback to days 1-31 if discovery fails
-        setAvailableDays(Array.from({ length: 31 }, (_, i) => i + 1));
+        // Don't show fallback dates - only show today if it exists
+        const dateYear = parseInt(year);
+        const dateMonth = parseInt(month);
+        if (dateYear === todayYear && dateMonth === todayMonth) {
+          setAvailableDays([todayDay]);
+        } else {
+          setAvailableDays([]);
+        }
         setIsLoading(false);
       });
   }, [difficulty, selectedDate]);
@@ -56,13 +82,30 @@ export function DateSelector({ selectedDate, onDateChange, theme, difficulty = '
     }
     const monthName = monthNames[parseInt(month) - 1];
     
+    const today = new Date();
+    const todayYear = today.getFullYear();
+    const todayMonth = today.getMonth() + 1;
+    const todayDay = today.getDate();
+    
     availableDays.forEach(day => {
       const dayStr = String(day).padStart(2, '0');
       const dateStr = `${year}-${month}-${dayStr}`;
-      dates.push({
-        value: dateStr,
-        label: `${monthName} ${day}`
-      });
+      const dateYear = parseInt(year);
+      const dateMonth = parseInt(month);
+      const dateDay = day;
+      
+      // Double-check: don't include future dates
+      let isFuture = false;
+      if (dateYear > todayYear) isFuture = true;
+      else if (dateYear === todayYear && dateMonth > todayMonth) isFuture = true;
+      else if (dateYear === todayYear && dateMonth === todayMonth && dateDay > todayDay) isFuture = true;
+      
+      if (!isFuture) {
+        dates.push({
+          value: dateStr,
+          label: `${monthName} ${day}`
+        });
+      }
     });
     
     return dates;
@@ -71,7 +114,21 @@ export function DateSelector({ selectedDate, onDateChange, theme, difficulty = '
   const handleDateChange = (e) => {
     const newDate = e.target.value;
     if (newDate) {
-      onDateChange(newDate);
+      // Validate that the date is not in the future
+      const [year, month, day] = newDate.split('-');
+      const today = new Date();
+      const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      const todayObj = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      
+      // Only allow dates that are today or in the past
+      if (dateObj <= todayObj) {
+        onDateChange(newDate);
+      } else {
+        console.warn('Cannot select future dates');
+        // Reset to today if a future date was somehow selected
+        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        onDateChange(todayStr);
+      }
     }
   };
 
