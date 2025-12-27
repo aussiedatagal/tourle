@@ -14,26 +14,31 @@ export async function loadPuzzle(date = null, difficulty = 'medium') {
 
   try {
     const response = await fetch(puzzlePath);
-    if (!response.ok) {
+    const contentType = response.headers.get('content-type');
+    if (!response.ok || (contentType && !contentType.includes('application/json'))) {
       throw new Error('Puzzle not found');
     }
     const puzzleData = await response.json();
-    return { puzzleData, isTest: false };
+    // Return the requested date as the actual date (puzzle was found for this date)
+    const actualDate = `${date.year}-${date.month}-${date.day}`;
+    return { puzzleData, isTest: false, actualDate };
   } catch (error) {
-    console.warn(`Puzzle for ${puzzlePath} not found, trying fallback`);
     // Try legacy format (without difficulty) for backward compatibility
     const legacyPath = `${BASE_URL}puzzles/${date.year}/${date.month}/${date.day}.json`;
     try {
       const legacyResponse = await fetch(legacyPath);
-      if (legacyResponse.ok) {
+      const legacyContentType = legacyResponse.headers.get('content-type');
+      if (legacyResponse.ok && (!legacyContentType || legacyContentType.includes('application/json'))) {
         const puzzleData = await legacyResponse.json();
-        return { puzzleData, isTest: false };
+        // Return the requested date as the actual date (puzzle was found for this date)
+        const actualDate = `${date.year}-${date.month}-${date.day}`;
+        return { puzzleData, isTest: false, actualDate };
       }
     } catch (legacyError) {
       // Continue to fallback puzzle
     }
     
-    // Try to find the most recent available puzzle before the requested date
+    // Find the most recent available puzzle before the requested date
     const mostRecent = await findMostRecentPuzzle(date.year, date.month, date.day, difficulty);
     if (mostRecent) {
       const recentPath = `${BASE_URL}puzzles/${mostRecent.year}/${mostRecent.month}/${mostRecent.day}_${difficulty}.json`;
@@ -41,10 +46,12 @@ export async function loadPuzzle(date = null, difficulty = 'medium') {
         const recentResponse = await fetch(recentPath);
         if (recentResponse.ok) {
           const puzzleData = await recentResponse.json();
-          return { puzzleData: { ...puzzleData, date: puzzleData.date + ' (Fallback)' }, isTest: true };
+          // Return the actual date used (from the fallback puzzle)
+          const actualDate = `${mostRecent.year}-${mostRecent.month}-${mostRecent.day}`;
+          return { puzzleData, isTest: false, actualDate };
         }
       } catch (recentError) {
-        // Continue to hardcoded fallback
+        // Continue to legacy format
       }
       
       // Try legacy format for most recent
@@ -53,39 +60,50 @@ export async function loadPuzzle(date = null, difficulty = 'medium') {
         const recentLegacyResponse = await fetch(recentLegacyPath);
         if (recentLegacyResponse.ok) {
           const puzzleData = await recentLegacyResponse.json();
-          return { puzzleData: { ...puzzleData, date: puzzleData.date + ' (Fallback)' }, isTest: true };
+          // Return the actual date used (from the fallback puzzle)
+          const actualDate = `${mostRecent.year}-${mostRecent.month}-${mostRecent.day}`;
+          return { puzzleData, isTest: false, actualDate };
         }
       } catch (recentLegacyError) {
-        // Continue to hardcoded fallback
+        // Continue to error
       }
     }
     
-    // Final fallback: use December 24th (hardcoded)
-    const fallbackPath = `${BASE_URL}puzzles/2025/12/24_${difficulty}.json`;
-    try {
-      const fallbackResponse = await fetch(fallbackPath);
-      if (fallbackResponse.ok) {
-        const puzzleData = await fallbackResponse.json();
-        return { puzzleData: { ...puzzleData, date: puzzleData.date + ' (Test)' }, isTest: true };
+    // If we get here, findMostRecentPuzzle returned null, which shouldn't happen
+    // But let's try one more time with a broader search
+    console.warn(`Puzzle for ${puzzlePath} not found, attempting broader fallback search`);
+    
+    // Try to find any available puzzle in the same month
+    const availableDays = await discoverAvailableDates(date.year, date.month, difficulty);
+    if (availableDays.length > 0) {
+      const mostRecentDay = availableDays[availableDays.length - 1];
+      const dayStr = String(mostRecentDay).padStart(2, '0');
+      const fallbackPath = `${BASE_URL}puzzles/${date.year}/${date.month}/${dayStr}_${difficulty}.json`;
+      try {
+        const fallbackResponse = await fetch(fallbackPath);
+        if (fallbackResponse.ok) {
+          const puzzleData = await fallbackResponse.json();
+          const actualDate = `${date.year}-${date.month}-${dayStr}`;
+          return { puzzleData, isTest: false, actualDate };
+        }
+      } catch (fallbackError) {
+        // Try legacy format
+        const legacyFallbackPath = `${BASE_URL}puzzles/${date.year}/${date.month}/${dayStr}.json`;
+        try {
+          const legacyFallbackResponse = await fetch(legacyFallbackPath);
+          if (legacyFallbackResponse.ok) {
+            const puzzleData = await legacyFallbackResponse.json();
+            const actualDate = `${date.year}-${date.month}-${dayStr}`;
+            return { puzzleData, isTest: false, actualDate };
+          }
+        } catch (legacyFallbackError) {
+          // Continue to error
+        }
       }
-    } catch (fallbackError) {
-      // Continue to legacy fallback
     }
     
-    // Try legacy fallback format (without difficulty) for backward compatibility
-    const legacyFallbackPath = `${BASE_URL}puzzles/2025/12/24.json`;
-    try {
-      const legacyFallbackResponse = await fetch(legacyFallbackPath);
-      if (legacyFallbackResponse.ok) {
-        const puzzleData = await legacyFallbackResponse.json();
-        return { puzzleData: { ...puzzleData, date: puzzleData.date + ' (Test)' }, isTest: true };
-      }
-    } catch (legacyFallbackError) {
-      // All fallbacks failed
-    }
-    
-    console.error('Error loading fallback puzzle: All fallbacks failed');
-    throw new Error('Fallback puzzle also not found');
+    console.error('Error loading puzzle: No puzzle found and no fallback available');
+    throw new Error('Puzzle not found');
   }
 }
 
@@ -95,7 +113,8 @@ export async function loadSolution(puzzleDate, difficulty = 'medium') {
 
   try {
     const response = await fetch(solutionPath);
-    if (!response.ok) {
+    const contentType = response.headers.get('content-type');
+    if (!response.ok || (contentType && !contentType.includes('application/json'))) {
       throw new Error('Solution not found');
     }
     const solution = await response.json();
@@ -105,7 +124,8 @@ export async function loadSolution(puzzleDate, difficulty = 'medium') {
     const legacyPath = `${BASE_URL}puzzles/${year}/${month}/${day}_solution.json`;
     try {
       const legacyResponse = await fetch(legacyPath);
-      if (legacyResponse.ok) {
+      const legacyContentType = legacyResponse.headers.get('content-type');
+      if (legacyResponse.ok && (!legacyContentType || legacyContentType.includes('application/json'))) {
         return await legacyResponse.json();
       }
     } catch (legacyError) {
@@ -119,11 +139,12 @@ export async function loadSolution(puzzleDate, difficulty = 'medium') {
 /**
  * Check if a puzzle exists for a given date and difficulty
  */
-async function checkPuzzleExists(year, month, day, difficulty = 'medium') {
+export async function checkPuzzleExists(year, month, day, difficulty = 'medium') {
   const puzzlePath = `${BASE_URL}puzzles/${year}/${month}/${day}_${difficulty}.json`;
   try {
     const response = await fetch(puzzlePath, { method: 'GET', cache: 'no-cache' });
-    if (response.ok) return true;
+    const contentType = response.headers.get('content-type');
+    if (response.ok && contentType && contentType.includes('application/json')) return true;
   } catch (error) {
     // Ignore
   }
@@ -132,7 +153,8 @@ async function checkPuzzleExists(year, month, day, difficulty = 'medium') {
   const legacyPath = `${BASE_URL}puzzles/${year}/${month}/${day}.json`;
   try {
     const response = await fetch(legacyPath, { method: 'GET', cache: 'no-cache' });
-    if (response.ok) return true;
+    const contentType = response.headers.get('content-type');
+    if (response.ok && contentType && contentType.includes('application/json')) return true;
   } catch (error) {
     // Ignore
   }

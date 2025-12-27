@@ -92,39 +92,35 @@ describe('puzzleLoader', () => {
       expect(global.fetch).toHaveBeenCalledWith('/puzzles/2025/12/15_hard.json');
     });
 
-    it('should fallback to test puzzle when puzzle is not found', async () => {
-      const mockFallbackPuzzle = {
-        date: '2025-12-24',
+    it('should fallback to most recent puzzle when puzzle is not found', async () => {
+      const mockRecentPuzzle = {
+        date: '2025-12-25',
         north_pole: { x: 500, y: 500 },
         houses: [],
         optimal_distance: 1000
       };
 
-      // First fetch fails (puzzle not found)
-      global.fetch.mockResolvedValueOnce({
-        ok: false
-      });
-
-      // Legacy format for same date fails
-      global.fetch.mockResolvedValueOnce({
-        ok: false
-      });
-
-      // Fallback puzzle with difficulty succeeds
-      global.fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockFallbackPuzzle
+      // Mock fetch sequence:
+      // 1. Requested puzzle (99_medium) fails
+      // 2. Legacy format for same date (99) fails
+      // 3. findMostRecentPuzzle checks 98_medium, 97_medium, ..., 25_medium
+      
+      global.fetch.mockImplementation((url) => {
+        if (url.includes('99_medium.json')) return Promise.resolve({ ok: false });
+        if (url.includes('99.json')) return Promise.resolve({ ok: false });
+        if (url.includes('25_medium.json')) return Promise.resolve({ 
+          ok: true, 
+          json: async () => mockRecentPuzzle 
+        });
+        // For findMostRecentPuzzle loop
+        return Promise.resolve({ ok: false });
       });
 
       const dateObj = { year: '2025', month: '12', day: '99' };
       const result = await loadPuzzle(dateObj);
 
-      expect(global.fetch).toHaveBeenCalledTimes(3);
-      expect(global.fetch).toHaveBeenNthCalledWith(1, '/puzzles/2025/12/99_medium.json');
-      expect(global.fetch).toHaveBeenNthCalledWith(2, '/puzzles/2025/12/99.json');
-      expect(global.fetch).toHaveBeenNthCalledWith(3, '/puzzles/2025/12/24_medium.json');
-      expect(result.puzzleData.date).toBe('2025-12-24 (Test)');
-      expect(result.isTest).toBe(true);
+      expect(result.puzzleData).toEqual(mockRecentPuzzle);
+      expect(result.actualDate).toBe('2025-12-25');
     });
 
     it('should fallback to legacy puzzle format when difficulty puzzle not found', async () => {
@@ -153,18 +149,17 @@ describe('puzzleLoader', () => {
       expect(global.fetch).toHaveBeenNthCalledWith(1, '/puzzles/2025/12/15_easy.json');
       expect(global.fetch).toHaveBeenNthCalledWith(2, '/puzzles/2025/12/15.json');
       expect(result.puzzleData).toEqual(mockLegacyPuzzle);
-      expect(result.isTest).toBe(false);
     });
 
     it('should throw error when both puzzle and fallback fail', async () => {
-      // Both fetches fail
+      // All fetches fail
       global.fetch.mockResolvedValue({
         ok: false
       });
 
       const dateObj = { year: '2025', month: '12', day: '99' };
 
-      await expect(loadPuzzle(dateObj)).rejects.toThrow('Fallback puzzle also not found');
+      await expect(loadPuzzle(dateObj)).rejects.toThrow('Puzzle not found');
     });
 
     it('should handle network errors gracefully', async () => {

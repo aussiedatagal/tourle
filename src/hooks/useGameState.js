@@ -3,7 +3,7 @@ import { loadPuzzle, loadSolution } from '../utils/puzzleLoader';
 import { calculateDistance, findNodeAt, isSameNode } from '../utils/canvasUtils';
 import { saveScore, getBestScore } from '../utils/scoreStorage';
 
-export function useGameState(selectedDate = null, difficulty = 'medium') {
+export function useGameState(selectedDate = null, difficulty = 'medium', onDateChange = null) {
   const [puzzleData, setPuzzleData] = useState(null);
   const [route, setRoute] = useState([]);
   const [visitedHouses, setVisitedHouses] = useState(new Set());
@@ -42,7 +42,7 @@ export function useGameState(selectedDate = null, difficulty = 'medium') {
       day: selectedDate.split('-')[2]
     };
 
-    loadPuzzle(dateObj, difficulty).then(({ puzzleData }) => {
+    loadPuzzle(dateObj, difficulty).then(({ puzzleData, actualDate }) => {
       setPuzzleData(puzzleData);
       setRoute([]);
       setVisitedHouses(new Set());
@@ -54,8 +54,13 @@ export function useGameState(selectedDate = null, difficulty = 'medium') {
       setRouteAnimationProgress(1);
       setAttempts(0);
       setCurrentAttemptStarted(false);
+      
+      // If we fell back to a different date, update the selected date
+      if (actualDate && actualDate !== selectedDate && onDateChange) {
+        onDateChange(actualDate);
+      }
     }).catch(console.error);
-  }, [selectedDate, difficulty]);
+  }, [selectedDate, difficulty, onDateChange]);
 
   const checkWinCondition = useCallback(() => {
     if (route.length < 2 || !puzzleData) return;

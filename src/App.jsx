@@ -10,7 +10,7 @@ import { DateSelector } from './components/DateSelector';
 import { Instructions } from './components/Instructions';
 import { Statistics } from './components/Statistics';
 import { themes } from './themes';
-import { getMostRecentAvailableDate } from './utils/puzzleLoader';
+import { getMostRecentAvailableDate, checkPuzzleExists } from './utils/puzzleLoader';
 
 function App() {
   const [theme, setTheme] = useState(() => {
@@ -33,6 +33,7 @@ function App() {
   });
 
   // Initialize selectedDate: check saved date, then today, then most recent available
+  // Only switch to latest if user's date is also the latest
   useEffect(() => {
     const initializeDate = async () => {
       const savedDate = localStorage.getItem('tsp-selected-date');
@@ -40,11 +41,20 @@ function App() {
         const [year, month, day] = savedDate.split('-');
         // Validate that it's a reasonable date
         if (year && month && day && parseInt(day) >= 1 && parseInt(day) <= 31) {
-          // Check if saved date is today - if not, use most recent available
+          // Check if saved date's puzzle exists
+          const exists = await checkPuzzleExists(year, month, day, selectedDifficulty);
+          if (exists) {
+            // Puzzle exists for saved date, use it
+            setSelectedDate(savedDate);
+            setIsInitializing(false);
+            return;
+          }
+          
+          // Saved date's puzzle doesn't exist, check if it's today
           const today = new Date();
           const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
           if (savedDate === todayStr) {
-            // Check if today's puzzle exists
+            // It's today but puzzle doesn't exist yet, use most recent available
             const mostRecent = await getMostRecentAvailableDate(selectedDifficulty);
             if (mostRecent) {
               setSelectedDate(mostRecent);
@@ -52,21 +62,37 @@ function App() {
               return;
             }
           } else {
-            // Saved date is not today, use most recent available instead
-            const mostRecent = await getMostRecentAvailableDate(selectedDifficulty);
-            if (mostRecent) {
-              setSelectedDate(mostRecent);
-              setIsInitializing(false);
-              return;
-            }
+            // Saved date is not today and puzzle doesn't exist, but don't auto-switch
+            // Just use the saved date and let the fallback handle it
+            setSelectedDate(savedDate);
+            setIsInitializing(false);
+            return;
           }
         }
       }
       
-      // No valid saved date, use most recent available
-      const mostRecent = await getMostRecentAvailableDate(selectedDifficulty);
-      if (mostRecent) {
-        setSelectedDate(mostRecent);
+      // No valid saved date, use today if it exists, otherwise most recent available
+      // But only use most recent if today is also the latest available
+      const today = new Date();
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      const todayExists = await checkPuzzleExists(today.getFullYear().toString(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0'), selectedDifficulty);
+      
+      if (todayExists) {
+        // Today's puzzle exists, use it
+        setSelectedDate(todayStr);
+      } else {
+        // Today's puzzle doesn't exist, check if today is the latest available
+        const mostRecent = await getMostRecentAvailableDate(selectedDifficulty);
+        if (mostRecent && mostRecent === todayStr) {
+          // Today is the latest available (shouldn't happen, but handle it)
+          setSelectedDate(todayStr);
+        } else if (mostRecent) {
+          // Use most recent available
+          setSelectedDate(mostRecent);
+        } else {
+          // No puzzles available, use today anyway (fallback will handle it)
+          setSelectedDate(todayStr);
+        }
       }
       setIsInitializing(false);
     };
@@ -116,7 +142,7 @@ function App() {
     undoLastMove,
     resetRoute,
     toggleSolution
-  } = useGameState(selectedDate, selectedDifficulty);
+  } = useGameState(selectedDate, selectedDifficulty, setSelectedDate);
 
   // Show win message popup when game is completed (only once per completion)
   useEffect(() => {
