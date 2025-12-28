@@ -64,7 +64,7 @@ describe('renderer', () => {
         node: '🏠',
         nodeVisited: '🎁',
         startNode: '🏭',
-        vehicle: '🦌🛷🎅🎁',
+        vehicle: '🦌🎅',
         instructionBullet: '❄️'
       },
       colors: {
@@ -439,6 +439,204 @@ describe('renderer', () => {
       // Font size should be set (not empty or NaN)
       expect(mockCtx.font).toBeTruthy();
       expect(mockCtx.font).toContain('px');
+    });
+  });
+
+  describe('Node icon changes on visit', () => {
+    it('should render unvisited houses with node icon', () => {
+      const route = [];
+      const visitedHouses = new Set();
+
+      render(
+        mockCtx,
+        mockCanvas,
+        mockPuzzleData,
+        route,
+        visitedHouses,
+        false,
+        null,
+        0,
+        1,
+        null,
+        null,
+        mockTheme
+      );
+
+      // Check that unvisited houses use the node icon
+      const nodeCalls = mockCtx.fillText.mock.calls.filter(
+        call => call[0] === mockTheme.icons.node
+      );
+      expect(nodeCalls.length).toBe(mockPuzzleData.houses.length);
+    });
+
+    it('should render visited houses with nodeVisited icon', () => {
+      const route = [
+        { type: 'north_pole', x: 500, y: 500 },
+        { type: 'house', id: 1, x: 200, y: 200 }
+      ];
+      const visitedHouses = new Set([1]);
+
+      render(
+        mockCtx,
+        mockCanvas,
+        mockPuzzleData,
+        route,
+        visitedHouses,
+        false,
+        null,
+        0,
+        1,
+        null,
+        null,
+        mockTheme
+      );
+
+      // Check that visited house uses nodeVisited icon
+      const visitedCalls = mockCtx.fillText.mock.calls.filter(
+        call => call[0] === mockTheme.icons.nodeVisited
+      );
+      expect(visitedCalls.length).toBeGreaterThan(0);
+      
+      // Check that unvisited house still uses node icon
+      const nodeCalls = mockCtx.fillText.mock.calls.filter(
+        call => call[0] === mockTheme.icons.node
+      );
+      expect(nodeCalls.length).toBeGreaterThan(0);
+    });
+
+    it('should render houses with correct icons based on visited state for Christmas theme', () => {
+      const christmasTheme = {
+        icons: {
+          node: '🏠',
+          nodeVisited: '🎁',
+          startNode: '🏭',
+          vehicle: '🦌🎅',
+          instructionBullet: '❄️'
+        },
+        colors: {
+          route: '#4a90e2',
+          solution: '#ffd700',
+          startNode: '#c41e3a',
+          house: '#ffffff',
+          houseVisited: '#90EE90'
+        }
+      };
+
+      const route = [
+        { type: 'north_pole', x: 500, y: 500 },
+        { type: 'house', id: 1, x: 200, y: 200 }
+      ];
+      const visitedHouses = new Set([1]);
+
+      render(
+        mockCtx,
+        mockCanvas,
+        mockPuzzleData,
+        route,
+        visitedHouses,
+        false,
+        null,
+        0,
+        1,
+        null,
+        null,
+        christmasTheme
+      );
+
+      // Verify visited house uses 🎁 (present)
+      const presentCalls = mockCtx.fillText.mock.calls.filter(
+        call => call[0] === '🎁'
+      );
+      expect(presentCalls.length).toBeGreaterThan(0);
+
+      // Verify unvisited house uses 🏠 (house)
+      const houseCalls = mockCtx.fillText.mock.calls.filter(
+        call => call[0] === '🏠'
+      );
+      expect(houseCalls.length).toBeGreaterThan(0);
+    });
+
+    it('should render houses with correct icons based on visited state for Default theme', () => {
+      const defaultTheme = {
+        icons: {
+          node: '🏠',
+          nodeVisited: '📦',
+          startNode: '🏣',
+          vehicle: '🚐',
+          instructionBullet: '📍'
+        },
+        colors: {
+          route: '#4a90e2',
+          solution: '#ffd700',
+          startNode: '#c41e3a',
+          house: '#ffffff',
+          houseVisited: '#90EE90'
+        }
+      };
+
+      const route = [
+        { type: 'north_pole', x: 500, y: 500 },
+        { type: 'house', id: 1, x: 200, y: 200 }
+      ];
+      const visitedHouses = new Set([1]);
+
+      render(
+        mockCtx,
+        mockCanvas,
+        mockPuzzleData,
+        route,
+        visitedHouses,
+        false,
+        null,
+        0,
+        1,
+        null,
+        null,
+        defaultTheme
+      );
+
+      // Verify visited house uses 📦 (package)
+      const packageCalls = mockCtx.fillText.mock.calls.filter(
+        call => call[0] === '📦'
+      );
+      expect(packageCalls.length).toBeGreaterThan(0);
+
+      // Verify unvisited house uses 🏠 (house)
+      const houseCalls = mockCtx.fillText.mock.calls.filter(
+        call => call[0] === '🏠'
+      );
+      expect(houseCalls.length).toBeGreaterThan(0);
+    });
+
+    it('should handle all houses visited correctly', () => {
+      const route = [
+        { type: 'north_pole', x: 500, y: 500 },
+        { type: 'house', id: 1, x: 200, y: 200 },
+        { type: 'house', id: 2, x: 300, y: 300 }
+      ];
+      const visitedHouses = new Set([1, 2]);
+
+      render(
+        mockCtx,
+        mockCanvas,
+        mockPuzzleData,
+        route,
+        visitedHouses,
+        false,
+        null,
+        0,
+        1,
+        null,
+        null,
+        mockTheme
+      );
+
+      // All houses should use nodeVisited icon
+      const visitedCalls = mockCtx.fillText.mock.calls.filter(
+        call => call[0] === mockTheme.icons.nodeVisited
+      );
+      // Should have at least 2 calls for visited houses (plus potentially other elements)
+      expect(visitedCalls.length).toBeGreaterThanOrEqual(2);
     });
   });
 });

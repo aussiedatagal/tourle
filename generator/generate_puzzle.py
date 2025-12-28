@@ -263,7 +263,7 @@ def score_candidate(north_pole, houses):
 
 DIFFICULTY_CONFIG = {
     "easy": {
-        "house_range": (10, 12),
+        "house_range": (12, 12),
         "min_gap": 0.0,
         "min_complexity": 60,
         "candidates": 4,
@@ -271,7 +271,7 @@ DIFFICULTY_CONFIG = {
         "biased": False,
     },
     "medium": {
-        "house_range": (13, 15),
+        "house_range": (14, 14),
         "min_gap": 0.05,
         "min_complexity": 130,
         "candidates": 6,
@@ -279,12 +279,12 @@ DIFFICULTY_CONFIG = {
         "biased": False,
     },
     "hard": {
-        "house_range": (15, 16),
+        "house_range": (16, 16),
         "min_gap": 0.10,
         "min_complexity": 180,
-        "candidates": 10,
+        "candidates": 1,
         "min_grid_distance": 1,
-        "biased": True,
+        "biased": False,
     },
 }
 
@@ -302,46 +302,26 @@ def generate_puzzle(date=None, difficulty="medium"):
 
     north_pole = {"x": GRID_SIZE // 2, "y": GRID_SIZE // 2}
 
-    log(f"[{difficulty}] Generating {cfg['candidates']} candidates (houses={num_houses})...")
-    accepted = []
-    best = None
+    log(f"[{difficulty}] Generating puzzle (houses={num_houses})...")
+    
+    # Generate the first candidate and use it
+    houses = generate_coordinates(
+        num_houses,
+        north_pole=north_pole,
+        min_grid_distance=cfg["min_grid_distance"],
+        biased=cfg["biased"],
+    )
 
-    for attempt in range(1, cfg["candidates"] + 1):
-        houses = generate_coordinates(
-            num_houses,
-            north_pole=north_pole,
-            min_grid_distance=cfg["min_grid_distance"],
-            biased=cfg["biased"],
-        )
+    if len(houses) < num_houses:
+        raise RuntimeError(f"Insufficient houses placed ({len(houses)}/{num_houses})")
 
-        if len(houses) < num_houses:
-            log(f"  [{difficulty}] Candidate {attempt}: insufficient houses placed ({len(houses)}/{num_houses}), skipping.")
-            continue
-
-        stats = score_candidate(north_pole, houses)
-        meets = stats["heuristic_gap"] >= cfg["min_gap"] and stats["complexity"] >= cfg["min_complexity"]
-        if best is None or stats["score"] > best["score"]:
-            best = {**stats, "houses": houses}
-
-        status = "kept" if meets else "discarded"
-        log(
-            f"  [{difficulty}] Candidate {attempt}: gap={stats['heuristic_gap']:.3f}, "
-            f"complexity={stats['complexity']:.1f}, score={stats['score']:.1f} -> {status}"
-        )
-
-        if meets:
-            accepted.append({**stats, "houses": houses})
-
-    chosen = accepted[0] if accepted else best
-    if chosen is None:
-        raise RuntimeError(f"No candidates generated for difficulty {difficulty}")
-
-    if accepted:
-        # pick the strongest among accepted
-        chosen = max(accepted, key=lambda c: c["score"])
-        log(f"[{difficulty}] Selected best accepted candidate (score={chosen['score']:.1f}).")
-    else:
-        log(f"[{difficulty}] No candidates met thresholds; using best overall (score={best['score']:.1f}).")
+    stats = score_candidate(north_pole, houses)
+    log(
+        f"[{difficulty}] Generated: gap={stats['heuristic_gap']:.3f}, "
+        f"complexity={stats['complexity']:.1f}, score={stats['score']:.1f}"
+    )
+    
+    chosen = {**stats, "houses": houses}
 
     houses = chosen["houses"]
     optimal_distance = chosen["optimal_distance"]
@@ -387,12 +367,20 @@ def main():
     else:
         date = datetime.now()
 
+    # Optional difficulty filter
+    target_difficulty = None
+    if len(sys.argv) > 2:
+        target_difficulty = sys.argv[2]
+        if target_difficulty not in DIFFICULTY_CONFIG:
+            print(f"Unknown difficulty: {target_difficulty}. Use: easy, medium, hard")
+            sys.exit(1)
+
     year = date.strftime("%Y")
     month = date.strftime("%m")
     day = date.strftime("%d")
     base_path = Path(__file__).parent.parent / "public" / "puzzles" / year / month
 
-    difficulties = ["easy", "medium", "hard"]
+    difficulties = [target_difficulty] if target_difficulty else ["easy", "medium", "hard"]
 
     log(f"Generating puzzles for {date.strftime('%Y-%m-%d')}...")
 

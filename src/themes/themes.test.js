@@ -28,7 +28,7 @@ describe('Theme System', () => {
       expect(christmasTheme.icons.node).toBe('🏠');
       expect(christmasTheme.icons.nodeVisited).toBe('🎁');
       expect(christmasTheme.icons.startNode).toBe('🏭');
-      expect(christmasTheme.icons.vehicle).toBe('🦌🛷🎅🎁');
+      expect(christmasTheme.icons.vehicle).toBe('🦌🎅');
       expect(christmasTheme.icons.instructionBullet).toBe('❄️');
     });
 
@@ -138,6 +138,28 @@ describe('Theme System', () => {
       const defaultColorKeys = Object.keys(defaultTheme.colors);
       
       expect(christmasColorKeys.sort()).toEqual(defaultColorKeys.sort());
+    });
+  });
+
+  describe('Node icon changes on visit', () => {
+    it('should have different icons for unvisited and visited nodes in Christmas theme', () => {
+      expect(christmasTheme.icons.node).not.toBe(christmasTheme.icons.nodeVisited);
+      expect(christmasTheme.icons.node).toBe('🏠');
+      expect(christmasTheme.icons.nodeVisited).toBe('🎁');
+    });
+
+    it('should have different icons for unvisited and visited nodes in Default theme', () => {
+      expect(defaultTheme.icons.node).not.toBe(defaultTheme.icons.nodeVisited);
+      expect(defaultTheme.icons.node).toBe('🏠');
+      expect(defaultTheme.icons.nodeVisited).toBe('📦');
+    });
+
+    it('should have nodeVisited icon different from node icon in all themes', () => {
+      Object.values(themes).forEach(theme => {
+        expect(theme.icons.node).toBeDefined();
+        expect(theme.icons.nodeVisited).toBeDefined();
+        expect(theme.icons.node).not.toBe(theme.icons.nodeVisited);
+      });
     });
   });
 });

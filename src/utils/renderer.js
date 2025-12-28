@@ -13,6 +13,10 @@ export function render(
   theme
 ) {
   if (!puzzleData || !ctx) return;
+  if (!theme || !theme.icons) {
+    console.warn('Renderer: Invalid theme object, missing icons');
+    return;
+  }
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -163,6 +167,8 @@ function drawDragPreview(ctx, fromNode, toNode, theme) {
 }
 
 function drawHouses(ctx, puzzleData, visitedHouses, theme, scale = 1) {
+  if (!theme || !theme.icons) return;
+  
   const baseFontSize = 28;
   const fontSize = baseFontSize * scale;
   ctx.font = `${fontSize}px Arial`;
@@ -170,24 +176,28 @@ function drawHouses(ctx, puzzleData, visitedHouses, theme, scale = 1) {
   ctx.textBaseline = 'middle';
 
   for (const house of puzzleData.houses) {
-    const emoji = visitedHouses.has(house.id)
-      ? theme.icons.nodeVisited
-      : theme.icons.node;
+    const emoji = (visitedHouses && visitedHouses.has(house.id))
+      ? (theme.icons.nodeVisited || '🎁')
+      : (theme.icons.node || '🏠');
     ctx.fillText(emoji, house.x, house.y);
   }
 }
 
 function drawNorthPole(ctx, puzzleData, route, visitedHouses, theme, scale = 1) {
+  if (!theme || !theme.icons) return;
+  
   const np = puzzleData.north_pole;
   const baseFontSize = 32;
   const fontSize = baseFontSize * scale;
   ctx.font = `${fontSize}px Arial`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(theme.icons.startNode, np.x, np.y);
+  ctx.fillText(theme.icons.startNode || '🏭', np.x, np.y);
 }
 
 function drawRouteNodes(ctx, puzzleData, route, animationProgress, theme, scale = 1) {
+  if (!theme || !theme.icons) return;
+  
   let vehicleNode;
   let vehicleX, vehicleY;
 
@@ -218,7 +228,7 @@ function drawRouteNodes(ctx, puzzleData, route, animationProgress, theme, scale 
   ctx.font = `${fontSize}px Arial`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(theme.icons.vehicle, vehicleX, vehicleY - offset);
+  ctx.fillText(theme.icons.vehicle || '🦌🎅', vehicleX, vehicleY - offset);
 }
 
 function drawSolutionRoute(ctx, solutionRoute, solutionAnimationIndex, theme) {
@@ -243,7 +253,7 @@ function drawSolutionRoute(ctx, solutionRoute, solutionAnimationIndex, theme) {
 }
 
 function drawSolutionRouteNodes(ctx, solutionRoute, solutionAnimationIndex, theme, scale = 1) {
-  if (!solutionRoute) return;
+  if (!solutionRoute || !theme || !theme.icons) return;
 
   const endIndex = Math.min(solutionAnimationIndex + 1, solutionRoute.length);
   if (endIndex > 0) {
@@ -254,7 +264,7 @@ function drawSolutionRouteNodes(ctx, solutionRoute, solutionAnimationIndex, them
     ctx.font = `${fontSize}px Arial`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(theme.icons.vehicle, currentPoint.x, currentPoint.y - offset);
+    ctx.fillText(theme.icons.vehicle || '🦌🎅', currentPoint.x, currentPoint.y - offset);
   }
 }
 
