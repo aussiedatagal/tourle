@@ -20,46 +20,40 @@ export function useGameState(selectedDate = null, difficulty = 'medium', onDateC
   const routeAnimationRef = useRef(null);
 
   useEffect(() => {
-    // Don't load puzzle if no date is selected
-    if (!selectedDate) {
-      setPuzzleData(null);
-      setRoute([]);
-      setVisitedHouses(new Set());
-      setGameComplete(false);
-      setShowReminder(false);
-      setShowingSolution(false);
-      setSolutionRoute(null);
-      setSolutionAnimationIndex(0);
-      setRouteAnimationProgress(1);
-      setAttempts(0);
-      setCurrentAttemptStarted(false);
-      return;
-    }
+    const loadForDate = async () => {
+      try {
+        const dateObj = selectedDate
+          ? {
+              year: selectedDate.split('-')[0],
+              month: selectedDate.split('-')[1],
+              day: selectedDate.split('-')[2]
+            }
+          : null;
 
-    const dateObj = {
-      year: selectedDate.split('-')[0],
-      month: selectedDate.split('-')[1],
-      day: selectedDate.split('-')[2]
+        const { puzzleData, actualDate } = await loadPuzzle(dateObj, difficulty);
+
+        setPuzzleData(puzzleData);
+        setRoute([]);
+        setVisitedHouses(new Set());
+        setGameComplete(false);
+        setShowReminder(false);
+        setShowingSolution(false);
+        setSolutionRoute(null);
+        setSolutionAnimationIndex(0);
+        setRouteAnimationProgress(1);
+        setAttempts(0);
+        setCurrentAttemptStarted(false);
+
+        if (actualDate && actualDate !== selectedDate && onDateChange) {
+          onDateChange(actualDate);
+        }
+      } catch (err) {
+        console.error(err);
+        setPuzzleData(null);
+      }
     };
 
-    loadPuzzle(dateObj, difficulty).then(({ puzzleData, actualDate }) => {
-      setPuzzleData(puzzleData);
-      setRoute([]);
-      setVisitedHouses(new Set());
-      setGameComplete(false);
-      setShowReminder(false);
-      setShowingSolution(false);
-      setSolutionRoute(null);
-      setSolutionAnimationIndex(0);
-      setRouteAnimationProgress(1);
-      setAttempts(0);
-      setCurrentAttemptStarted(false);
-      
-      // If we fell back to a different date, update the selected date
-      if (actualDate && actualDate !== selectedDate && onDateChange) {
-        onDateChange(actualDate);
-      }
-    }).catch(console.error);
+    loadForDate();
   }, [selectedDate, difficulty, onDateChange]);
 
   const checkWinCondition = useCallback(() => {

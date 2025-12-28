@@ -1,6 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { DateSelector } from './DateSelector';
+import { discoverAvailableDates } from '../utils/puzzleLoader';
+
+vi.mock('../utils/puzzleLoader', () => {
+  const days = Array.from({ length: 24 }, (_, i) => i + 1);
+  return {
+    discoverAvailableDates: vi.fn(() => Promise.resolve(days))
+  };
+});
 
 const mockTheme = {
   colors: {
@@ -17,7 +25,7 @@ describe('DateSelector', () => {
     vi.clearAllMocks();
   });
 
-  it('should render date selector with dropdown and navigation buttons', () => {
+  it('should render date selector with dropdown and navigation buttons', async () => {
     render(
       <DateSelector
         selectedDate="2025-12-15"
@@ -26,12 +34,14 @@ describe('DateSelector', () => {
       />
     );
 
-    expect(screen.getByRole('combobox')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('combobox')).toBeInTheDocument();
+    });
     expect(screen.getByLabelText('Previous puzzle')).toBeInTheDocument();
     expect(screen.getByLabelText('Next puzzle')).toBeInTheDocument();
   });
 
-  it('should display all dates from December 1-24 in dropdown', () => {
+  it('should display all dates from December 1-24 in dropdown', async () => {
     render(
       <DateSelector
         selectedDate="2025-12-15"
@@ -40,7 +50,7 @@ describe('DateSelector', () => {
       />
     );
 
-    const select = screen.getByRole('combobox');
+    const select = await screen.findByRole('combobox');
     const options = Array.from(select.options);
 
     // Should have 25 options (1 placeholder + 24 dates)
@@ -52,7 +62,7 @@ describe('DateSelector', () => {
     expect(options.some(opt => opt.value === '2025-12-24')).toBe(true);
   });
 
-  it('should call onDateChange when date is selected from dropdown', () => {
+  it('should call onDateChange when date is selected from dropdown', async () => {
     render(
       <DateSelector
         selectedDate="2025-12-15"
@@ -61,13 +71,13 @@ describe('DateSelector', () => {
       />
     );
 
-    const select = screen.getByRole('combobox');
+    const select = await screen.findByRole('combobox');
     fireEvent.change(select, { target: { value: '2025-12-20' } });
 
     expect(mockOnDateChange).toHaveBeenCalledWith('2025-12-20');
   });
 
-  it('should navigate to previous date when Previous button is clicked', () => {
+  it('should navigate to previous date when Previous button is clicked', async () => {
     render(
       <DateSelector
         selectedDate="2025-12-15"
@@ -76,13 +86,13 @@ describe('DateSelector', () => {
       />
     );
 
-    const prevButton = screen.getByLabelText('Previous puzzle');
+    const prevButton = await screen.findByLabelText('Previous puzzle');
     fireEvent.click(prevButton);
 
     expect(mockOnDateChange).toHaveBeenCalledWith('2025-12-14');
   });
 
-  it('should navigate to next date when Next button is clicked', () => {
+  it('should navigate to next date when Next button is clicked', async () => {
     render(
       <DateSelector
         selectedDate="2025-12-15"
@@ -91,13 +101,13 @@ describe('DateSelector', () => {
       />
     );
 
-    const nextButton = screen.getByLabelText('Next puzzle');
+    const nextButton = await screen.findByLabelText('Next puzzle');
     fireEvent.click(nextButton);
 
     expect(mockOnDateChange).toHaveBeenCalledWith('2025-12-16');
   });
 
-  it('should disable Previous button when on first date (Dec 1)', () => {
+  it('should disable Previous button when on first date (Dec 1)', async () => {
     render(
       <DateSelector
         selectedDate="2025-12-01"
@@ -106,11 +116,11 @@ describe('DateSelector', () => {
       />
     );
 
-    const prevButton = screen.getByLabelText('Previous puzzle');
+    const prevButton = await screen.findByLabelText('Previous puzzle');
     expect(prevButton).toBeDisabled();
   });
 
-  it('should disable Next button when on last date (Dec 24)', () => {
+  it('should disable Next button when on last date (Dec 24)', async () => {
     render(
       <DateSelector
         selectedDate="2025-12-24"
@@ -119,11 +129,11 @@ describe('DateSelector', () => {
       />
     );
 
-    const nextButton = screen.getByLabelText('Next puzzle');
+    const nextButton = await screen.findByLabelText('Next puzzle');
     expect(nextButton).toBeDisabled();
   });
 
-  it('should not call onDateChange when Previous is clicked on first date', () => {
+  it('should not call onDateChange when Previous is clicked on first date', async () => {
     render(
       <DateSelector
         selectedDate="2025-12-01"
@@ -132,13 +142,13 @@ describe('DateSelector', () => {
       />
     );
 
-    const prevButton = screen.getByLabelText('Previous puzzle');
+    const prevButton = await screen.findByLabelText('Previous puzzle');
     fireEvent.click(prevButton);
 
     expect(mockOnDateChange).not.toHaveBeenCalled();
   });
 
-  it('should not call onDateChange when Next is clicked on last date', () => {
+  it('should not call onDateChange when Next is clicked on last date', async () => {
     render(
       <DateSelector
         selectedDate="2025-12-24"
@@ -147,13 +157,13 @@ describe('DateSelector', () => {
       />
     );
 
-    const nextButton = screen.getByLabelText('Next puzzle');
+    const nextButton = await screen.findByLabelText('Next puzzle');
     fireEvent.click(nextButton);
 
     expect(mockOnDateChange).not.toHaveBeenCalled();
   });
 
-  it('should handle navigation from Dec 1 to Dec 24', () => {
+  it('should handle navigation from Dec 1 to Dec 24', async () => {
     let currentDate = '2025-12-01';
     const handleDateChange = (newDate) => {
       mockOnDateChange(newDate);
@@ -170,7 +180,7 @@ describe('DateSelector', () => {
 
     // Click Next 23 times to get to Dec 24, updating the date after each click
     for (let i = 0; i < 23; i++) {
-      const nextButton = screen.getByLabelText('Next puzzle');
+      const nextButton = await screen.findByLabelText('Next puzzle');
       fireEvent.click(nextButton);
       
       // Simulate parent component updating the selectedDate
@@ -189,11 +199,11 @@ describe('DateSelector', () => {
     expect(mockOnDateChange).toHaveBeenLastCalledWith('2025-12-24');
 
     // Next button should now be disabled
-    const nextButton = screen.getByLabelText('Next puzzle');
+    const nextButton = await screen.findByLabelText('Next puzzle');
     expect(nextButton).toBeDisabled();
   });
 
-  it('should render select element with date-select class', () => {
+  it('should render select element with date-select class', async () => {
     render(
       <DateSelector
         selectedDate="2025-12-15"
@@ -202,7 +212,7 @@ describe('DateSelector', () => {
       />
     );
 
-    const select = screen.getByRole('combobox');
+    const select = await screen.findByRole('combobox');
     expect(select).toHaveClass('date-select');
   });
 });

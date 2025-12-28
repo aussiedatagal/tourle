@@ -1,1 +1,8 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run unit tests
 npm test
+
+# Run E2E smoke tests (quick critical tests)
+npm run test:e2e:smoke

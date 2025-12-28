@@ -49,7 +49,7 @@ export const christmasTheme = {
     node: '🏠', // House for unvisited nodes
     nodeVisited: '🎁', // Present for visited nodes
     startNode: '🏭', // North Pole
-    vehicle: '🦌🎅' // Sleigh for current position in tour
+    vehicle: '🦌🛷🎅🎁' // Sleigh for current position in tour
   }
 };
 

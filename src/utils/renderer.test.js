@@ -294,5 +294,152 @@ describe('renderer', () => {
       expect(vehicleCalls.length).toBeGreaterThan(0);
     });
   });
+
+  describe('mobile scrolling bug', () => {
+    it('should handle canvas scrolled out of view (negative bounding rect)', () => {
+      // Simulate canvas scrolled out of view - getBoundingClientRect returns negative or zero dimensions
+      mockCanvas.getBoundingClientRect = vi.fn(() => ({
+        left: -500,
+        top: -500,
+        width: 0,
+        height: 0,
+        right: -500,
+        bottom: -500
+      }));
+
+      // Mock mobile environment
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 375
+      });
+      Object.defineProperty(window, 'ontouchstart', {
+        writable: true,
+        configurable: true,
+        value: {}
+      });
+
+      const route = [];
+      const visitedHouses = new Set();
+
+      // Should not throw error and should still render
+      expect(() => {
+        render(
+          mockCtx,
+          mockCanvas,
+          mockPuzzleData,
+          route,
+          visitedHouses,
+          false,
+          null,
+          0,
+          1,
+          null,
+          null,
+          mockTheme
+        );
+      }).not.toThrow();
+
+      // Should still clear and attempt to render
+      expect(mockCtx.clearRect).toHaveBeenCalled();
+    });
+
+    it('should handle canvas partially scrolled out of view (small bounding rect)', () => {
+      // Simulate canvas partially scrolled out - very small dimensions
+      mockCanvas.getBoundingClientRect = vi.fn(() => ({
+        left: -200,
+        top: 100,
+        width: 50,
+        height: 50,
+        right: -150,
+        bottom: 150
+      }));
+
+      // Mock mobile environment
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 375
+      });
+      Object.defineProperty(window, 'ontouchstart', {
+        writable: true,
+        configurable: true,
+        value: {}
+      });
+
+      const route = [];
+      const visitedHouses = new Set();
+
+      // Should not throw error
+      expect(() => {
+        render(
+          mockCtx,
+          mockCanvas,
+          mockPuzzleData,
+          route,
+          visitedHouses,
+          false,
+          null,
+          0,
+          1,
+          null,
+          null,
+          mockTheme
+        );
+      }).not.toThrow();
+
+      // Should still render items
+      expect(mockCtx.clearRect).toHaveBeenCalled();
+      expect(mockCtx.fillText).toHaveBeenCalled();
+    });
+
+    it('should use fallback scale when bounding rect dimensions are invalid', () => {
+      // Simulate invalid dimensions (zero or negative)
+      mockCanvas.getBoundingClientRect = vi.fn(() => ({
+        left: 0,
+        top: 0,
+        width: 0,
+        height: 0,
+        right: 0,
+        bottom: 0
+      }));
+
+      // Mock mobile environment
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 375
+      });
+      Object.defineProperty(window, 'ontouchstart', {
+        writable: true,
+        configurable: true,
+        value: {}
+      });
+
+      const route = [];
+      const visitedHouses = new Set();
+
+      render(
+        mockCtx,
+        mockCanvas,
+        mockPuzzleData,
+        route,
+        visitedHouses,
+        false,
+        null,
+        0,
+        1,
+        null,
+        null,
+        mockTheme
+      );
+
+      // Should still render with a fallback scale
+      expect(mockCtx.fillText).toHaveBeenCalled();
+      // Font size should be set (not empty or NaN)
+      expect(mockCtx.font).toBeTruthy();
+      expect(mockCtx.font).toContain('px');
+    });
+  });
 });
 

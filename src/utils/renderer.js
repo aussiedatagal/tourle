@@ -19,14 +19,34 @@ export function render(
   // Calculate scale factor for responsive sizing
   // On mobile, canvas is displayed smaller but we want larger icons
   const rect = canvas.getBoundingClientRect();
-  const displayScale = Math.min(rect.width / canvas.width, rect.height / canvas.height);
+  
+  // Handle edge case where canvas is scrolled out of view or has invalid dimensions
+  // Use canvas.style.width/height as fallback if getBoundingClientRect is invalid
+  let displayWidth = rect.width;
+  let displayHeight = rect.height;
+  
+  // If bounding rect has invalid dimensions (scrolled out of view), use style dimensions
+  if (displayWidth <= 0 || displayHeight <= 0 || !isFinite(displayWidth) || !isFinite(displayHeight)) {
+    // Try to get dimensions from style, fallback to canvas dimensions
+    const styleWidth = canvas.style ? parseFloat(canvas.style.width) : null;
+    const styleHeight = canvas.style ? parseFloat(canvas.style.height) : null;
+    displayWidth = (styleWidth && styleWidth > 0) ? styleWidth : canvas.width;
+    displayHeight = (styleHeight && styleHeight > 0) ? styleHeight : canvas.height;
+  }
+  
+  const displayScale = Math.min(displayWidth / canvas.width, displayHeight / canvas.height);
+  
   // For mobile (smaller displays), use a larger scale multiplier to make icons appear bigger
   const isMobile = window.innerWidth <= 768 || 'ontouchstart' in window;
   // On mobile, if display is very small (scale < 0.6), use 3x multiplier, otherwise 2x
   // For desktop, use 1.5x to make emojis bigger
   // This ensures icons appear at least 2-3x larger than they would normally
+  // Use a minimum scale of 0.5 to ensure items are always visible even when scrolled
+  const minDisplayScale = 0.5;
+  const safeDisplayScale = Math.max(displayScale, minDisplayScale);
+  
   let scale = isMobile 
-    ? (displayScale < 0.6 ? 3 : 2)
+    ? (safeDisplayScale < 0.6 ? 3 : 2)
     : 1.5;
 
   // Adjust scale to prevent emoji overlap

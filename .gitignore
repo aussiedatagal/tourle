@@ -33,3 +33,8 @@ __pycache__/
 # Hard puzzle solutions (not committed to keep them challenging)
 **/*_hard_solution.json
 
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+

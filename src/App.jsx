@@ -10,7 +10,7 @@ import { DateSelector } from './components/DateSelector';
 import { Instructions } from './components/Instructions';
 import { Statistics } from './components/Statistics';
 import { themes } from './themes';
-import { getMostRecentAvailableDate, checkPuzzleExists } from './utils/puzzleLoader';
+import { getMostRecentAvailableDate, checkPuzzleExists, loadSolution } from './utils/puzzleLoader';
 
 function App() {
   const [theme, setTheme] = useState(() => {
@@ -143,6 +143,36 @@ function App() {
     resetRoute,
     toggleSolution
   } = useGameState(selectedDate, selectedDifficulty, setSelectedDate);
+
+  // Dev-only helper to reveal hard solutions via console
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+
+    const helper = async (dateOverride = null) => {
+      const targetDate = dateOverride || selectedDate || puzzleData?.date?.replace(' (Test)', '');
+      if (!targetDate) {
+        console.info('[dev] revealHardSolution: no puzzle loaded yet.');
+        return null;
+      }
+      try {
+        const solution = await loadSolution(targetDate, 'hard');
+        console.info(`[dev] Hard solution for ${targetDate}:`, solution.route);
+        return solution;
+      } catch (error) {
+        console.error('[dev] Failed to load hard solution. Ensure hard solutions exist locally.', error);
+        return null;
+      }
+    };
+
+    window.revealHardSolution = helper;
+    console.info(
+      '[dev] Hard puzzle helper ready. Run window.revealHardSolution() to log the optimal hard route (or pass a date "YYYY-MM-DD").'
+    );
+
+    return () => {
+      delete window.revealHardSolution;
+    };
+  }, [selectedDate, puzzleData]);
 
   // Show win message popup when game is completed (only once per completion)
   useEffect(() => {

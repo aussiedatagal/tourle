@@ -8,14 +8,8 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
   const [dragStartNode, setDragStartNode] = useState(null);
   const [dragTargetNode, setDragTargetNode] = useState(null);
   const touchHandledRef = useRef(false);
-  
-  // Use refs to store latest values for event listeners
   const stateRef = useRef({ isDragging, dragStartNode, gameComplete, puzzleData, onNodeClick, route, visitedHouses });
-  
-  // Track touch drag state locally (synchronously) to avoid async state issues
   const touchDragStateRef = useRef({ isDragging: false, dragStartNode: null, hasMoved: false, lastVisitedNode: null });
-  
-  // Track last visited node during drag to avoid adding same node multiple times
   const lastVisitedNodeRef = useRef(null);
   
   useEffect(() => {
@@ -33,12 +27,10 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Add native touch event listeners with passive: false to allow preventDefault
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Helper function to check if a node is the same as another
     const isSameNode = (node1, node2) => {
       if (!node1 || !node2) return false;
       if (node1.type !== node2.type) return false;
@@ -47,7 +39,6 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
       return false;
     };
 
-    // Create wrapper functions that will always have access to latest refs
     const touchStartHandler = (e) => {
       const state = stateRef.current;
       
@@ -63,15 +54,13 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
       const coords = getCanvasCoords(canvas, e, true);
       const node = findNodeAt(state.puzzleData, coords.x, coords.y);
 
-      // Always prevent default to allow continuous dragging
       e.preventDefault();
       e.stopPropagation();
       touchHandledRef.current = true;
       
-      // Start dragging - can start from a node or empty space
       setIsDragging(true);
       setDragStartNode(node);
-      lastVisitedNodeRef.current = node; // Track the starting node if we started on one
+      lastVisitedNodeRef.current = node;
       touchDragStateRef.current = { 
         isDragging: true, 
         dragStartNode: node, 
@@ -79,13 +68,9 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
         lastVisitedNode: node
       };
       
-      // If we started on a node, visit it immediately (if valid)
-      // Only visit if it's not already visited (for houses) or if route is not empty (for north_pole)
       if (node) {
         if (node.type === 'house' && state.visitedHouses && state.visitedHouses.has(node.id)) {
-          // Already visited, don't add
         } else if (node.type === 'north_pole' && state.route && state.route.length === 0) {
-          // Can't start from north_pole with empty route
         } else {
           state.onNodeClick(node.x, node.y);
         }
@@ -100,7 +85,6 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
         return;
       }
       
-      // Mark that we've moved - this distinguishes a drag from a tap
       touchDragStateRef.current.hasMoved = true;
       
       e.preventDefault();
@@ -119,22 +103,17 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
 
         const node = findNodeAt(state.puzzleData, x, y);
         
-        // Update drag target for visual feedback
         if (node) {
           setDragTargetNode(node);
         } else {
           setDragTargetNode(null);
         }
         
-        // If we're near a node and it's different from the last one we visited, add it
         if (node && !isSameNode(node, lastVisitedNodeRef.current)) {
-          // Check if this is a house that's already been visited - skip it
           if (node.type === 'house' && state.visitedHouses && state.visitedHouses.has(node.id)) {
-            // Already visited, don't add again
             return;
           }
           
-          // Check if this is the same as the last node in the route - skip it
           if (state.route && state.route.length > 0) {
             const lastRouteNode = state.route[state.route.length - 1];
             if (isSameNode(node, lastRouteNode)) {
@@ -142,17 +121,13 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
             }
           }
           
-          // Add this node to the route
           lastVisitedNodeRef.current = node;
           touchDragStateRef.current.lastVisitedNode = node;
           
-          // Call onNodeClick to add the node
-          // Pass the last node in the route as fromNode if route exists, otherwise just click normally
           if (state.route && state.route.length > 0) {
             const lastRouteNode = state.route[state.route.length - 1];
             state.onNodeClick(node.x, node.y, lastRouteNode);
           } else {
-            // No route yet, just click normally (will handle starting from north_pole if needed)
             state.onNodeClick(node.x, node.y);
           }
         }
@@ -173,7 +148,6 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
       e.stopPropagation();
 
       if (!e.changedTouches || e.changedTouches.length === 0) {
-        // No touch data - just reset
         setIsDragging(false);
         setDragStartNode(null);
         setDragTargetNode(null);
@@ -193,7 +167,6 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
       const endNode = findNodeAt(state.puzzleData, x, y);
       const hasMoved = touchState.hasMoved;
 
-      // Always reset state first
       setIsDragging(false);
       setDragStartNode(null);
       setDragTargetNode(null);
@@ -221,14 +194,11 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
       canvas.removeEventListener('touchend', touchEndHandler);
       canvas.removeEventListener('touchcancel', touchEndHandler);
     };
-  }, []); // Only attach once - handlers use refs for latest values
+  }, []);
 
-  // Track scroll position to force re-render on scroll
   const [scrollKey, setScrollKey] = useState(0);
   
   useEffect(() => {
-    // Listen for scroll events to trigger re-render
-    // Use requestAnimationFrame to batch updates and avoid excessive re-renders
     let rafId = null;
     const handleScroll = () => {
       if (rafId === null) {
@@ -239,13 +209,10 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
       }
     };
     
-    // Listen to scroll on window, document, and document.documentElement
-    // This ensures we catch scroll events on mobile devices
     window.addEventListener('scroll', handleScroll, { passive: true });
     document.addEventListener('scroll', handleScroll, { passive: true });
     document.documentElement.addEventListener('scroll', handleScroll, { passive: true });
     
-    // Also listen to visibility change to re-render when tab becomes visible
     const handleVisibilityChange = () => {
       if (!document.hidden) {
         setScrollKey(prev => prev + 1);
@@ -264,7 +231,6 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
     };
   }, []);
 
-  // Use IntersectionObserver to re-render when canvas becomes visible
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -273,7 +239,6 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting && puzzleData) {
-            // Force re-render when canvas becomes visible
             setScrollKey(prev => prev + 1);
           }
         });
@@ -326,19 +291,14 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
     const coords = getCanvasCoords(canvas, event);
     const node = findNodeAt(puzzleData, coords.x, coords.y);
 
-    // Start dragging - can start from a node or empty space
     setIsDragging(true);
     setDragStartNode(node);
-    lastVisitedNodeRef.current = node; // Track the starting node if we started on one
+    lastVisitedNodeRef.current = node;
     canvas.style.cursor = 'grabbing';
     
-    // If we started on a node, visit it immediately (if valid)
-    // Only visit if it's not already visited (for houses) or if route is not empty (for north_pole)
     if (node) {
       if (node.type === 'house' && visitedHouses && visitedHouses.has(node.id)) {
-        // Already visited, don't add
       } else if (node.type === 'north_pole' && route && route.length === 0) {
-        // Can't start from north_pole with empty route
       } else {
         onNodeClick(node.x, node.y);
       }
@@ -354,22 +314,17 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
     const coords = getCanvasCoords(canvas, event);
     const node = findNodeAt(puzzleData, coords.x, coords.y);
 
-    // Update drag target for visual feedback
     if (node) {
       setDragTargetNode(node);
     } else {
       setDragTargetNode(null);
     }
     
-    // If we're near a node and it's different from the last one we visited, add it
     if (node && !isSameNode(node, lastVisitedNodeRef.current)) {
-      // Check if this is a house that's already been visited - skip it
       if (node.type === 'house' && visitedHouses && visitedHouses.has(node.id)) {
-        // Already visited, don't add again
         return;
       }
       
-      // Check if this is the same as the last node in the route - skip it
       if (route && route.length > 0) {
         const lastRouteNode = route[route.length - 1];
         if (isSameNode(node, lastRouteNode)) {
@@ -377,16 +332,12 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
         }
       }
       
-      // Add this node to the route
       lastVisitedNodeRef.current = node;
       
-      // Call onNodeClick to add the node
-      // Pass the last node in the route as fromNode if route exists, otherwise just click normally
       if (route && route.length > 0) {
         const lastRouteNode = route[route.length - 1];
         onNodeClick(node.x, node.y, lastRouteNode);
       } else {
-        // No route yet, just click normally (will handle starting from north_pole if needed)
         onNodeClick(node.x, node.y);
       }
     }
@@ -401,9 +352,7 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
     if (canvas) canvas.style.cursor = 'crosshair';
   };
 
-
   const handleClick = (event) => {
-    // Prevent click handler from firing after touch events on mobile
     if (touchHandledRef.current) {
       touchHandledRef.current = false;
       return;
