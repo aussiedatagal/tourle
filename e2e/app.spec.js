@@ -1,5 +1,24 @@
 import { test, expect } from '@playwright/test';
 
+// Helper function to tap or click based on touch support
+// Playwright simulates touch support for mobile device presets (Pixel 5, iPhone 12, etc.)
+async function tapOrClick(locator, options = {}) {
+  try {
+    // Try tap first - this works on mobile device projects (Pixel 5, iPhone 12)
+    // which have hasTouch: true enabled by default
+    await locator.tap(options);
+  } catch (error) {
+    // Fall back to click if tap is not supported (desktop browsers without touch)
+    // The error message will indicate touch is not supported
+    if (error.message && (error.message.includes('tap') || error.message.includes('touch') || error.message.includes('does not support'))) {
+      await locator.click(options);
+    } else {
+      // Re-throw if it's a different error (element not found, etc.)
+      throw error;
+    }
+  }
+}
+
 test.describe('Travelling Salesman Puzzle - E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
     // Store console errors in page context for later assertion
@@ -683,11 +702,11 @@ test.describe('Mobile View Tests', () => {
     
     // Tap on the canvas at different positions to simulate touching nodes
     // Tap near center (likely where north pole or a house might be)
-    await canvas.tap({ position: { x: canvasBox.width / 2, y: canvasBox.height / 2 } });
+    await tapOrClick(canvas, { position: { x: canvasBox.width / 2, y: canvasBox.height / 2 } });
     await page.waitForTimeout(300);
     
     // Tap at another position
-    await canvas.tap({ position: { x: canvasBox.width * 0.3, y: canvasBox.height * 0.3 } });
+    await tapOrClick(canvas, { position: { x: canvasBox.width * 0.3, y: canvasBox.height * 0.3 } });
     await page.waitForTimeout(300);
     
     // Check that distance has changed (indicating route was updated)
@@ -748,14 +767,14 @@ test.describe('Mobile View Tests', () => {
     if (isVisible) {
       const closeButton = page.locator('button').filter({ hasText: /close|got it|×/i }).first();
       if (await closeButton.isVisible()) {
-        await closeButton.tap();
+        await tapOrClick(closeButton);
         await page.waitForTimeout(500);
       }
     }
     
     // Tap instructions button
     const instructionsButton = page.locator('button').filter({ hasText: /instructions|📖/i });
-    await instructionsButton.tap();
+    await tapOrClick(instructionsButton);
     
     // Wait for modal to appear
     await page.waitForTimeout(500);
@@ -763,7 +782,7 @@ test.describe('Mobile View Tests', () => {
     // Try to find and close the modal
     const closeBtn = page.locator('button').filter({ hasText: /close|got it|×/i }).first();
     if (await closeBtn.isVisible()) {
-      await closeBtn.tap();
+      await tapOrClick(closeBtn);
       await page.waitForTimeout(500);
     }
     
@@ -804,7 +823,7 @@ test.describe('Mobile View Tests', () => {
     ];
     
     for (const pos of tapPositions) {
-      await canvas.tap({ position: pos });
+      await tapOrClick(canvas, { position: pos });
       await page.waitForTimeout(300);
       
       // Check if button is enabled
@@ -813,7 +832,7 @@ test.describe('Mobile View Tests', () => {
       
       if (isEnabled) {
         // Successfully added nodes, now test undo
-        await undoButton.tap();
+        await tapOrClick(undoButton);
         await page.waitForTimeout(300);
         break;
       }
@@ -927,7 +946,7 @@ test.describe('Mobile View Tests', () => {
     
     // Try tapping previous button if available
     if (await prevButton.isVisible().catch(() => false)) {
-      await prevButton.tap();
+      await tapOrClick(prevButton);
       await page.waitForTimeout(1000); // Wait for puzzle to reload
     }
     

@@ -67,6 +67,8 @@ function adjustScaleForOverlap(puzzleData, baseScale) {
   const maxBaseFontSize = 32;
   const maxEmojiSize = maxBaseFontSize * baseScale;
   const minRequiredDistance = maxEmojiSize * 1.2;
+  const np = puzzleData.north_pole;
+  let minDistance = Infinity;
 
   for (const house of puzzleData.houses) {
     const dist = Math.sqrt((np.x - house.x) ** 2 + (np.y - house.y) ** 2);
