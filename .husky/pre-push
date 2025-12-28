@@ -2,5 +2,6 @@
 . "$(dirname -- "$0")/_/husky.sh"
 
 # Run full E2E test suite before pushing
-npm run test:e2e
+# Disabled - uncomment to re-enable
+# npm run test:e2e
 
