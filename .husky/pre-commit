@@ -1,8 +1,2 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
-# Run unit tests
 npm test
-
-# Run full E2E test suite (includes mobile tests)
 npm run test:e2e
