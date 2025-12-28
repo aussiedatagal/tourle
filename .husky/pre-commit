@@ -4,5 +4,5 @@
 # Run unit tests
 npm test
 
-# Run E2E smoke tests (quick critical tests)
-npm run test:e2e:smoke
+# Run full E2E test suite (includes mobile tests)
+npm run test:e2e
