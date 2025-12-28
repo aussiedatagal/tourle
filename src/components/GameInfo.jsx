@@ -30,17 +30,13 @@ export function GameInfo({
     if (!puzzleData || !gameComplete) return;
 
     const baseUrl = window.location.origin + window.location.pathname;
-    // Clean date string (remove " (Test)" if present)
     const cleanDate = puzzleData.date.replace(' (Test)', '');
     const shareUrl = `${baseUrl}?date=${cleanDate}&difficulty=${selectedDifficulty}`;
     
     const difficultyLabel = selectedDifficulty.charAt(0).toUpperCase() + selectedDifficulty.slice(1);
     const efficiencyNum = parseFloat(efficiency.replace('%', ''));
-    
-    // Get overview statistics
     const stats = getStatistics();
     
-    // Choose emoji based on efficiency
     let emoji = '🎯';
     if (efficiencyNum >= 95) emoji = '🌟';
     else if (efficiencyNum >= 90) emoji = '🎉';
@@ -49,8 +45,6 @@ export function GameInfo({
     else emoji = '🎯';
     
     let shareText = `🎄 Travelling Salesman Puzzle ${cleanDate} (${difficultyLabel}) ${emoji}\n\n`;
-    
-    // Current puzzle stats
     shareText += `📏 Distance: ${currentDistance.toFixed(2)}\n`;
     shareText += `⭐ Optimal: ${puzzleData.optimal_distance.toFixed(2)}\n`;
     shareText += `📊 Efficiency: ${efficiency}\n`;
@@ -58,7 +52,6 @@ export function GameInfo({
       shareText += `🎯 Attempts: ${attempts}\n`;
     }
     
-    // Overview stats
     if (stats && stats.totalPuzzlesCompleted > 0) {
       shareText += `\n📈 Overall Stats:\n`;
       shareText += `   • Puzzles Completed: ${stats.totalPuzzlesCompleted}\n`;

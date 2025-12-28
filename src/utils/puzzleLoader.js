@@ -53,9 +53,8 @@ export async function loadPuzzle(date = null, difficulty = 'medium') {
           const actualDate = `${mostRecent.year}-${mostRecent.month}-${mostRecent.day}`;
           return { puzzleData, isTest: false, actualDate };
         }
-      } catch (recentError) {
-        // Continue to legacy format
-      }
+    } catch (recentError) {
+    }
       
       // Try legacy format for most recent
       const recentLegacyPath = `${BASE_URL}puzzles/${mostRecent.year}/${mostRecent.month}/${mostRecent.day}.json`;
@@ -86,9 +85,8 @@ export async function loadPuzzle(date = null, difficulty = 'medium') {
           const actualDate = `${date.year}-${date.month}-${dayStr}`;
           return { puzzleData, isTest: false, actualDate };
         }
-      } catch (fallbackError) {
-        // Try legacy format
-        const legacyFallbackPath = `${BASE_URL}puzzles/${date.year}/${date.month}/${dayStr}.json`;
+        } catch (fallbackError) {
+          const legacyFallbackPath = `${BASE_URL}puzzles/${date.year}/${date.month}/${dayStr}.json`;
         try {
           const legacyFallbackResponse = await fetch(legacyFallbackPath);
           const ok = legacyFallbackResponse?.ok === undefined ? true : legacyFallbackResponse.ok;
@@ -97,9 +95,8 @@ export async function loadPuzzle(date = null, difficulty = 'medium') {
             const actualDate = `${date.year}-${date.month}-${dayStr}`;
             return { puzzleData, isTest: false, actualDate };
           }
-        } catch (legacyFallbackError) {
-          // Continue to error
-        }
+          } catch (legacyFallbackError) {
+          }
       }
     }
     

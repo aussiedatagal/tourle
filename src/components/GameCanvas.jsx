@@ -174,19 +174,16 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
       touchDragStateRef.current = { isDragging: false, dragStartNode: null, hasMoved: false, lastVisitedNode: null };
       touchHandledRef.current = false;
 
-      // If no movement occurred, treat as a simple tap/click
-      // (Nodes were already handled during drag in touchMoveHandler)
       if (!hasMoved && endNode) {
         state.onNodeClick(endNode.x, endNode.y);
       }
-      // If movement occurred, nodes were already handled during the drag, so nothing to do here
     };
 
     // Use native event listeners with { passive: false } to allow preventDefault
     canvas.addEventListener('touchstart', touchStartHandler, { passive: false });
     canvas.addEventListener('touchmove', touchMoveHandler, { passive: false });
     canvas.addEventListener('touchend', touchEndHandler, { passive: false });
-    canvas.addEventListener('touchcancel', touchEndHandler, { passive: false });
+      canvas.addEventListener('touchcancel', touchEndHandler, { passive: false });
 
     return () => {
       canvas.removeEventListener('touchstart', touchStartHandler);

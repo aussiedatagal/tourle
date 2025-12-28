@@ -16,18 +16,11 @@ export function render(
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Calculate scale factor for responsive sizing
-  // On mobile, canvas is displayed smaller but we want larger icons
   const rect = canvas.getBoundingClientRect();
-  
-  // Handle edge case where canvas is scrolled out of view or has invalid dimensions
-  // Use canvas.style.width/height as fallback if getBoundingClientRect is invalid
   let displayWidth = rect.width;
   let displayHeight = rect.height;
   
-  // If bounding rect has invalid dimensions (scrolled out of view), use style dimensions
   if (displayWidth <= 0 || displayHeight <= 0 || !isFinite(displayWidth) || !isFinite(displayHeight)) {
-    // Try to get dimensions from style, fallback to canvas dimensions
     const styleWidth = canvas.style ? parseFloat(canvas.style.width) : null;
     const styleHeight = canvas.style ? parseFloat(canvas.style.height) : null;
     displayWidth = (styleWidth && styleWidth > 0) ? styleWidth : canvas.width;
@@ -35,13 +28,7 @@ export function render(
   }
   
   const displayScale = Math.min(displayWidth / canvas.width, displayHeight / canvas.height);
-  
-  // For mobile (smaller displays), use a larger scale multiplier to make icons appear bigger
   const isMobile = window.innerWidth <= 768 || 'ontouchstart' in window;
-  // On mobile, if display is very small (scale < 0.6), use 3x multiplier, otherwise 2x
-  // For desktop, use 1.5x to make emojis bigger
-  // This ensures icons appear at least 2-3x larger than they would normally
-  // Use a minimum scale of 0.5 to ensure items are always visible even when scrolled
   const minDisplayScale = 0.5;
   const safeDisplayScale = Math.max(displayScale, minDisplayScale);
   
@@ -49,7 +36,6 @@ export function render(
     ? (safeDisplayScale < 0.6 ? 3 : 2)
     : 1.5;
 
-  // Adjust scale to prevent emoji overlap
   scale = adjustScaleForOverlap(puzzleData, scale);
 
   drawGrid(ctx);
@@ -75,32 +61,18 @@ export function render(
   }
 }
 
-/**
- * Adjust scale factor to prevent emoji overlap
- * Checks minimum distance between nodes and reduces scale if emojis would overlap
- */
 function adjustScaleForOverlap(puzzleData, baseScale) {
   if (!puzzleData) return baseScale;
 
-  // Calculate effective emoji size (largest emoji is north pole at 32px base)
   const maxBaseFontSize = 32;
   const maxEmojiSize = maxBaseFontSize * baseScale;
-  
-  // We need at least this much space between node centers to avoid overlap
-  // Using 1.2x multiplier to add some padding
   const minRequiredDistance = maxEmojiSize * 1.2;
 
-  // Find minimum distance between any two nodes
-  let minDistance = Infinity;
-  
-  // Check distance from north pole to all houses
-  const np = puzzleData.north_pole;
   for (const house of puzzleData.houses) {
     const dist = Math.sqrt((np.x - house.x) ** 2 + (np.y - house.y) ** 2);
     minDistance = Math.min(minDistance, dist);
   }
   
-  // Check distance between all pairs of houses
   for (let i = 0; i < puzzleData.houses.length; i++) {
     for (let j = i + 1; j < puzzleData.houses.length; j++) {
       const h1 = puzzleData.houses[i];
@@ -110,12 +82,8 @@ function adjustScaleForOverlap(puzzleData, baseScale) {
     }
   }
 
-  // If nodes are too close, reduce scale proportionally
   if (minDistance < minRequiredDistance && minDistance > 0) {
-    // Calculate safe scale: minDistance / (maxBaseFontSize * 1.2)
     const safeScale = minDistance / (maxBaseFontSize * 1.2);
-    // Use the smaller of baseScale and safeScale to prevent overlap
-    // But ensure we don't go below 1.0 for desktop (mobile can go below if needed)
     const isMobile = window.innerWidth <= 768 || 'ontouchstart' in window;
     const minScale = isMobile ? 0.8 : 1.0; // Allow mobile to scale down more if needed
     return Math.max(Math.min(baseScale, safeScale), minScale);
@@ -193,7 +161,6 @@ function drawDragPreview(ctx, fromNode, toNode, theme) {
 }
 
 function drawHouses(ctx, puzzleData, visitedHouses, theme, scale = 1) {
-  // Base font size, increased and scaled up
   const baseFontSize = 28;
   const fontSize = baseFontSize * scale;
   ctx.font = `${fontSize}px Arial`;
@@ -210,7 +177,6 @@ function drawHouses(ctx, puzzleData, visitedHouses, theme, scale = 1) {
 
 function drawNorthPole(ctx, puzzleData, route, visitedHouses, theme, scale = 1) {
   const np = puzzleData.north_pole;
-  // Base font size, increased and scaled up
   const baseFontSize = 32;
   const fontSize = baseFontSize * scale;
   ctx.font = `${fontSize}px Arial`;
@@ -244,7 +210,6 @@ function drawRouteNodes(ctx, puzzleData, route, animationProgress, theme, scale 
     }
   }
 
-  // Base font size, increased and scaled up
   const baseFontSize = 24;
   const fontSize = baseFontSize * scale;
   const offset = 20 * scale;
@@ -281,7 +246,6 @@ function drawSolutionRouteNodes(ctx, solutionRoute, solutionAnimationIndex, them
   const endIndex = Math.min(solutionAnimationIndex + 1, solutionRoute.length);
   if (endIndex > 0) {
     const currentPoint = solutionRoute[endIndex - 1];
-    // Base font size, increased and scaled up
     const baseFontSize = 24;
     const fontSize = baseFontSize * scale;
     const offset = 20 * scale;

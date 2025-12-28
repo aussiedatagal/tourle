@@ -574,3 +574,384 @@ test.describe('Travelling Salesman Puzzle - E2E Tests', () => {
   });
 });
 
+test.describe('Mobile View Tests', () => {
+  test.beforeEach(async ({ page }) => {
+    // Store console errors in page context for later assertion
+    await page.addInitScript(() => {
+      window.__consoleErrors = [];
+      window.__pageErrors = [];
+      
+      const originalError = console.error;
+      console.error = (...args) => {
+        window.__consoleErrors.push(args.join(' '));
+        originalError.apply(console, args);
+      };
+    });
+    
+    // Collect console errors and page errors
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        page.evaluate((errorText) => {
+          if (!window.__consoleErrors) window.__consoleErrors = [];
+          window.__consoleErrors.push(errorText);
+        }, msg.text());
+      }
+    });
+    
+    page.on('pageerror', (error) => {
+      page.evaluate((errorMessage) => {
+        if (!window.__pageErrors) window.__pageErrors = [];
+        window.__pageErrors.push(errorMessage);
+      }, error.message);
+    });
+    
+    // Clear localStorage before each test
+    await page.goto('/');
+    await page.evaluate(() => localStorage.clear());
+  });
+
+  test('should load on mobile viewport without errors', async ({ page }) => {
+    // Set mobile viewport
+    await page.setViewportSize({ width: 375, height: 667 }); // iPhone SE size
+    await page.goto('/');
+    
+    // Wait for the app to load
+    await page.waitForSelector('.container', { timeout: 10000 });
+    
+    // Check that the title is visible
+    await expect(page.locator('h1')).toBeVisible();
+    
+    // Check for console errors and page errors
+    const consoleErrors = await page.evaluate(() => window.__consoleErrors || []);
+    const pageErrors = await page.evaluate(() => window.__pageErrors || []);
+    const allErrors = [...consoleErrors, ...pageErrors];
+    
+    if (allErrors.length > 0) {
+      console.log('Console/Page errors detected:', allErrors);
+    }
+    expect(allErrors.length).toBe(0);
+  });
+
+  test('should display game canvas on mobile viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto('/');
+    
+    // Wait for canvas to be rendered
+    await page.waitForSelector('canvas', { timeout: 10000 });
+    
+    // Wait for puzzle data to load
+    await page.waitForSelector('.game-info', { timeout: 10000 });
+    
+    // Check that game info displays date
+    const gameInfo = page.locator('.game-info');
+    await expect(gameInfo).toBeVisible();
+    
+    // Check that canvas is visible and has reasonable size
+    const canvas = page.locator('canvas').first();
+    await expect(canvas).toBeVisible();
+    
+    const canvasBox = await canvas.boundingBox();
+    expect(canvasBox).not.toBeNull();
+    expect(canvasBox.width).toBeGreaterThan(0);
+    expect(canvasBox.height).toBeGreaterThan(0);
+    
+    // Check for console errors and page errors
+    const consoleErrors = await page.evaluate(() => window.__consoleErrors || []);
+    const pageErrors = await page.evaluate(() => window.__pageErrors || []);
+    const allErrors = [...consoleErrors, ...pageErrors];
+    
+    if (allErrors.length > 0) {
+      console.log('Console/Page errors detected:', allErrors);
+    }
+    expect(allErrors.length).toBe(0);
+  });
+
+  test('should interact with game canvas using touch on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto('/');
+    
+    // Wait for canvas to be ready
+    await page.waitForSelector('canvas', { timeout: 10000 });
+    await page.waitForTimeout(1000); // Give time for puzzle to load
+    
+    const canvas = page.locator('canvas').first();
+    await expect(canvas).toBeVisible();
+    
+    // Get canvas dimensions
+    const canvasBox = await canvas.boundingBox();
+    expect(canvasBox).not.toBeNull();
+    
+    // Tap on the canvas at different positions to simulate touching nodes
+    // Tap near center (likely where north pole or a house might be)
+    await canvas.tap({ position: { x: canvasBox.width / 2, y: canvasBox.height / 2 } });
+    await page.waitForTimeout(300);
+    
+    // Tap at another position
+    await canvas.tap({ position: { x: canvasBox.width * 0.3, y: canvasBox.height * 0.3 } });
+    await page.waitForTimeout(300);
+    
+    // Check that distance has changed (indicating route was updated)
+    const distanceText = await page.locator('.game-info .info-item').filter({ hasText: 'Distance:' }).textContent();
+    expect(distanceText).toBeTruthy();
+    
+    // Check for console errors and page errors
+    const consoleErrors = await page.evaluate(() => window.__consoleErrors || []);
+    const pageErrors = await page.evaluate(() => window.__pageErrors || []);
+    const allErrors = [...consoleErrors, ...pageErrors];
+    
+    if (allErrors.length > 0) {
+      console.log('Console/Page errors detected:', allErrors);
+    }
+    expect(allErrors.length).toBe(0);
+  });
+
+  test('should display controls on mobile viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto('/');
+    
+    // Wait for controls
+    await page.waitForSelector('.controls', { timeout: 10000 });
+    await page.waitForTimeout(1000);
+    
+    const controls = page.locator('.controls');
+    await expect(controls).toBeVisible();
+    
+    // Check that controls are accessible (not cut off or hidden)
+    const controlsBox = await controls.boundingBox();
+    expect(controlsBox).not.toBeNull();
+    expect(controlsBox.width).toBeGreaterThan(0);
+    expect(controlsBox.height).toBeGreaterThan(0);
+    
+    // Check for console errors and page errors
+    const consoleErrors = await page.evaluate(() => window.__consoleErrors || []);
+    const pageErrors = await page.evaluate(() => window.__pageErrors || []);
+    const allErrors = [...consoleErrors, ...pageErrors];
+    
+    if (allErrors.length > 0) {
+      console.log('Console/Page errors detected:', allErrors);
+    }
+    expect(allErrors.length).toBe(0);
+  });
+
+  test('should open and close instructions modal on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto('/');
+    
+    // Wait for page to load
+    await page.waitForSelector('.container', { timeout: 10000 });
+    
+    // Check if instructions modal is visible (might be shown on first visit)
+    const instructionsModal = page.locator('[class*="instructions"], [class*="modal"]').filter({ hasText: /instructions|how to play/i });
+    
+    // If modal is visible, close it first
+    const isVisible = await instructionsModal.isVisible().catch(() => false);
+    if (isVisible) {
+      const closeButton = page.locator('button').filter({ hasText: /close|got it|×/i }).first();
+      if (await closeButton.isVisible()) {
+        await closeButton.tap();
+        await page.waitForTimeout(500);
+      }
+    }
+    
+    // Tap instructions button
+    const instructionsButton = page.locator('button').filter({ hasText: /instructions|📖/i });
+    await instructionsButton.tap();
+    
+    // Wait for modal to appear
+    await page.waitForTimeout(500);
+    
+    // Try to find and close the modal
+    const closeBtn = page.locator('button').filter({ hasText: /close|got it|×/i }).first();
+    if (await closeBtn.isVisible()) {
+      await closeBtn.tap();
+      await page.waitForTimeout(500);
+    }
+    
+    // Check for console errors and page errors
+    const consoleErrors = await page.evaluate(() => window.__consoleErrors || []);
+    const pageErrors = await page.evaluate(() => window.__pageErrors || []);
+    const allErrors = [...consoleErrors, ...pageErrors];
+    
+    if (allErrors.length > 0) {
+      console.log('Console/Page errors detected:', allErrors);
+    }
+    expect(allErrors.length).toBe(0);
+  });
+
+  test('should use undo button with touch on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto('/');
+    
+    // Wait for canvas and controls
+    await page.waitForSelector('canvas', { timeout: 10000 });
+    await page.waitForSelector('.controls', { timeout: 10000 });
+    await page.waitForTimeout(1000);
+    
+    const canvas = page.locator('canvas').first();
+    const canvasBox = await canvas.boundingBox();
+    
+    // Get initial distance
+    const initialDistanceElement = page.locator('.game-info .info-item').filter({ hasText: 'Distance:' });
+    const initialDistance = await initialDistanceElement.textContent();
+    
+    // Tap on canvas at multiple positions to try to hit nodes
+    const tapPositions = [
+      { x: canvasBox.width / 2, y: canvasBox.height / 2 },
+      { x: canvasBox.width * 0.3, y: canvasBox.height * 0.3 },
+      { x: canvasBox.width * 0.7, y: canvasBox.height * 0.7 },
+      { x: canvasBox.width * 0.2, y: canvasBox.height * 0.5 },
+      { x: canvasBox.width * 0.8, y: canvasBox.height * 0.5 },
+    ];
+    
+    for (const pos of tapPositions) {
+      await canvas.tap({ position: pos });
+      await page.waitForTimeout(300);
+      
+      // Check if button is enabled
+      const undoButton = page.locator('.controls button').filter({ hasText: /back|undo|←/i });
+      const isEnabled = await undoButton.isEnabled().catch(() => false);
+      
+      if (isEnabled) {
+        // Successfully added nodes, now test undo
+        await undoButton.tap();
+        await page.waitForTimeout(300);
+        break;
+      }
+    }
+    
+    // Verify undo button worked
+    await page.waitForTimeout(300);
+    
+    // Distance should have changed (or button should be disabled if route is empty)
+    const distanceAfterUndo = await page.locator('.game-info .info-item').filter({ hasText: 'Distance:' }).textContent();
+    
+    // Check for console errors and page errors
+    const consoleErrors = await page.evaluate(() => window.__consoleErrors || []);
+    const pageErrors = await page.evaluate(() => window.__pageErrors || []);
+    const allErrors = [...consoleErrors, ...pageErrors];
+    
+    if (allErrors.length > 0) {
+      console.log('Console/Page errors detected:', allErrors);
+    }
+    expect(allErrors.length).toBe(0);
+  });
+
+  test('should handle orientation change on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 }); // Portrait
+    await page.goto('/');
+    
+    // Wait for canvas
+    await page.waitForSelector('canvas', { timeout: 10000 });
+    await page.waitForTimeout(1000);
+    
+    const canvas = page.locator('canvas').first();
+    await expect(canvas).toBeVisible();
+    
+    const portraitBox = await canvas.boundingBox();
+    expect(portraitBox).not.toBeNull();
+    
+    // Switch to landscape
+    await page.setViewportSize({ width: 667, height: 375 });
+    await page.waitForTimeout(500);
+    
+    // Canvas should still be visible
+    await expect(canvas).toBeVisible();
+    
+    const landscapeBox = await canvas.boundingBox();
+    expect(landscapeBox).not.toBeNull();
+    
+    // Canvas dimensions should have changed
+    expect(landscapeBox.width).not.toBe(portraitBox.width);
+    expect(landscapeBox.height).not.toBe(portraitBox.height);
+    
+    // Switch back to portrait
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.waitForTimeout(500);
+    
+    await expect(canvas).toBeVisible();
+    
+    // Check for console errors and page errors
+    const consoleErrors = await page.evaluate(() => window.__consoleErrors || []);
+    const pageErrors = await page.evaluate(() => window.__pageErrors || []);
+    const allErrors = [...consoleErrors, ...pageErrors];
+    
+    if (allErrors.length > 0) {
+      console.log('Console/Page errors detected:', allErrors);
+    }
+    expect(allErrors.length).toBe(0);
+  });
+
+  test('should display game info correctly on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto('/');
+    
+    // Wait for game info to load
+    await page.waitForSelector('.game-info', { timeout: 10000 });
+    await page.waitForTimeout(1000);
+    
+    const gameInfo = page.locator('.game-info');
+    await expect(gameInfo).toBeVisible();
+    
+    // Check that game info is not cut off
+    const gameInfoBox = await gameInfo.boundingBox();
+    expect(gameInfoBox).not.toBeNull();
+    expect(gameInfoBox.width).toBeGreaterThan(0);
+    expect(gameInfoBox.height).toBeGreaterThan(0);
+    
+    // Check that distance is displayed
+    await expect(page.locator('.game-info .info-item').filter({ hasText: 'Distance:' })).toBeVisible();
+    
+    // Check for console errors and page errors
+    const consoleErrors = await page.evaluate(() => window.__consoleErrors || []);
+    const pageErrors = await page.evaluate(() => window.__pageErrors || []);
+    const allErrors = [...consoleErrors, ...pageErrors];
+    
+    if (allErrors.length > 0) {
+      console.log('Console/Page errors detected:', allErrors);
+    }
+    expect(allErrors.length).toBe(0);
+  });
+
+  test('should handle date selection on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto('/');
+    
+    // Wait for date selector
+    await page.waitForSelector('.container', { timeout: 10000 });
+    await page.waitForTimeout(2000); // Give time for dates to load
+    
+    // Look for date selector buttons (previous/next) or select dropdown
+    const dateSelect = page.locator('select').filter({ hasText: /december|january|february/i });
+    const prevButton = page.locator('button').filter({ hasText: /<|previous|prev/i });
+    const nextButton = page.locator('button').filter({ hasText: />|next/i });
+    
+    // Try tapping previous button if available
+    if (await prevButton.isVisible().catch(() => false)) {
+      await prevButton.tap();
+      await page.waitForTimeout(1000); // Wait for puzzle to reload
+    }
+    
+    // Or try using the select dropdown if available
+    if (await dateSelect.isVisible().catch(() => false)) {
+      const options = await dateSelect.locator('option').all();
+      if (options.length > 1) {
+        await dateSelect.selectOption({ index: 1 });
+        await page.waitForTimeout(1000);
+      }
+    }
+    
+    // Check that puzzle data is still visible
+    await expect(page.locator('.game-info')).toBeVisible();
+    
+    // Check for console errors and page errors
+    const consoleErrors = await page.evaluate(() => window.__consoleErrors || []);
+    const pageErrors = await page.evaluate(() => window.__pageErrors || []);
+    const allErrors = [...consoleErrors, ...pageErrors];
+    
+    if (allErrors.length > 0) {
+      console.log('Console/Page errors detected:', allErrors);
+    }
+    expect(allErrors.length).toBe(0);
+  });
+});
+

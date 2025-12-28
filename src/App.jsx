@@ -22,7 +22,7 @@ function App() {
     localStorage.setItem('tsp-theme', theme.name);
   }, [theme]);
 
-  const [selectedDate, setSelectedDate] = useState(null); // Will be set in useEffect
+  const [selectedDate, setSelectedDate] = useState(null);
   const [isInitializing, setIsInitializing] = useState(true);
 
   const [selectedDifficulty, setSelectedDifficulty] = useState(() => {
@@ -32,29 +32,22 @@ function App() {
       : 'medium';
   });
 
-  // Initialize selectedDate: check saved date, then today, then most recent available
-  // Only switch to latest if user's date is also the latest
   useEffect(() => {
     const initializeDate = async () => {
       const savedDate = localStorage.getItem('tsp-selected-date');
       if (savedDate) {
         const [year, month, day] = savedDate.split('-');
-        // Validate that it's a reasonable date
         if (year && month && day && parseInt(day) >= 1 && parseInt(day) <= 31) {
-          // Check if saved date's puzzle exists
           const exists = await checkPuzzleExists(year, month, day, selectedDifficulty);
           if (exists) {
-            // Puzzle exists for saved date, use it
             setSelectedDate(savedDate);
             setIsInitializing(false);
             return;
           }
           
-          // Saved date's puzzle doesn't exist, check if it's today
           const today = new Date();
           const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
           if (savedDate === todayStr) {
-            // It's today but puzzle doesn't exist yet, use most recent available
             const mostRecent = await getMostRecentAvailableDate(selectedDifficulty);
             if (mostRecent) {
               setSelectedDate(mostRecent);
@@ -62,8 +55,6 @@ function App() {
               return;
             }
           } else {
-            // Saved date is not today and puzzle doesn't exist, but don't auto-switch
-            // Just use the saved date and let the fallback handle it
             setSelectedDate(savedDate);
             setIsInitializing(false);
             return;
@@ -71,26 +62,19 @@ function App() {
         }
       }
       
-      // No valid saved date, use today if it exists, otherwise most recent available
-      // But only use most recent if today is also the latest available
       const today = new Date();
       const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
       const todayExists = await checkPuzzleExists(today.getFullYear().toString(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0'), selectedDifficulty);
       
       if (todayExists) {
-        // Today's puzzle exists, use it
         setSelectedDate(todayStr);
       } else {
-        // Today's puzzle doesn't exist, check if today is the latest available
         const mostRecent = await getMostRecentAvailableDate(selectedDifficulty);
         if (mostRecent && mostRecent === todayStr) {
-          // Today is the latest available (shouldn't happen, but handle it)
           setSelectedDate(todayStr);
         } else if (mostRecent) {
-          // Use most recent available
           setSelectedDate(mostRecent);
         } else {
-          // No puzzles available, use today anyway (fallback will handle it)
           setSelectedDate(todayStr);
         }
       }
@@ -102,11 +86,10 @@ function App() {
 
   const [showStatistics, setShowStatistics] = useState(false);
   const [showInstructions, setShowInstructions] = useState(() => {
-    // Check if this is the first visit
     const hasVisited = localStorage.getItem('tsp-has-visited');
     if (!hasVisited) {
       localStorage.setItem('tsp-has-visited', 'true');
-      return true; // Show instructions on first visit
+      return true;
     }
     return false;
   });
@@ -144,7 +127,6 @@ function App() {
     toggleSolution
   } = useGameState(selectedDate, selectedDifficulty, setSelectedDate);
 
-  // Dev-only helper to reveal hard solutions via console
   useEffect(() => {
     if (!import.meta.env.DEV) return;
 
@@ -174,7 +156,6 @@ function App() {
     };
   }, [selectedDate, puzzleData]);
 
-  // Show win message popup when game is completed (only once per completion)
   useEffect(() => {
     if (gameComplete && !showWinMessage && !winMessageDismissedRef.current) {
       setShowWinMessage(true);
