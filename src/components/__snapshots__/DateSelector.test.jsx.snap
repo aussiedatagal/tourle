@@ -1,0 +1,155 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`DateSelector > should match snapshot 1`] = `
+<div>
+  <div
+    class="date-selector"
+  >
+    <div
+      class="date-selector-controls"
+    >
+      <button
+        aria-label="Previous puzzle"
+        class="btn btn-secondary date-nav-btn"
+      >
+        ← Previous
+      </button>
+      <select
+        class="date-select"
+      >
+        <option
+          value=""
+        >
+          Select a date...
+        </option>
+        <option
+          value="2025-12-01"
+        >
+          December 1
+        </option>
+        <option
+          value="2025-12-02"
+        >
+          December 2
+        </option>
+        <option
+          value="2025-12-03"
+        >
+          December 3
+        </option>
+        <option
+          value="2025-12-04"
+        >
+          December 4
+        </option>
+        <option
+          value="2025-12-05"
+        >
+          December 5
+        </option>
+        <option
+          value="2025-12-06"
+        >
+          December 6
+        </option>
+        <option
+          value="2025-12-07"
+        >
+          December 7
+        </option>
+        <option
+          value="2025-12-08"
+        >
+          December 8
+        </option>
+        <option
+          value="2025-12-09"
+        >
+          December 9
+        </option>
+        <option
+          value="2025-12-10"
+        >
+          December 10
+        </option>
+        <option
+          value="2025-12-11"
+        >
+          December 11
+        </option>
+        <option
+          value="2025-12-12"
+        >
+          December 12
+        </option>
+        <option
+          value="2025-12-13"
+        >
+          December 13
+        </option>
+        <option
+          value="2025-12-14"
+        >
+          December 14
+        </option>
+        <option
+          value="2025-12-15"
+        >
+          December 15
+        </option>
+        <option
+          value="2025-12-16"
+        >
+          December 16
+        </option>
+        <option
+          value="2025-12-17"
+        >
+          December 17
+        </option>
+        <option
+          value="2025-12-18"
+        >
+          December 18
+        </option>
+        <option
+          value="2025-12-19"
+        >
+          December 19
+        </option>
+        <option
+          value="2025-12-20"
+        >
+          December 20
+        </option>
+        <option
+          value="2025-12-21"
+        >
+          December 21
+        </option>
+        <option
+          value="2025-12-22"
+        >
+          December 22
+        </option>
+        <option
+          value="2025-12-23"
+        >
+          December 23
+        </option>
+        <option
+          value="2025-12-24"
+        >
+          December 24
+        </option>
+      </select>
+      <button
+        aria-label="Next puzzle"
+        class="btn btn-secondary date-nav-btn"
+      >
+        Next →
+      </button>
+    </div>
+  </div>
+</div>
+`;

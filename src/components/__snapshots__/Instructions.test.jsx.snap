@@ -1,0 +1,65 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Instructions > should match snapshot when open 1`] = `
+<div>
+  <div
+    class="instructions-overlay"
+  >
+    <div
+      class="instructions-modal"
+    >
+      <div
+        class="instructions-header"
+      >
+        <h2>
+          How to play:
+        </h2>
+        <button
+          aria-label="Close instructions"
+          class="instructions-close"
+        >
+          ×
+        </button>
+      </div>
+      <div
+        class="instructions-content"
+      >
+        <ul>
+          <li>
+            <span
+              class="bullet-icon"
+            >
+              ❄️
+            </span>
+            Click or drag from the North Pole to start
+          </li>
+          <li>
+            <span
+              class="bullet-icon"
+            >
+              ❄️
+            </span>
+            Click or drag to houses to visit them
+          </li>
+          <li>
+            <span
+              class="bullet-icon"
+            >
+              ❄️
+            </span>
+            Return to the North Pole to complete the route
+          </li>
+          <li>
+            <span
+              class="bullet-icon"
+            >
+              ❄️
+            </span>
+            Try to minimize your total distance!
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+`;

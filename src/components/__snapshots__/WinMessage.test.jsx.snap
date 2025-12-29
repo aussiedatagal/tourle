@@ -1,0 +1,426 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`WinMessage > should match snapshot when visible with medium difficulty 1`] = `
+<div>
+  <div
+    class="win-message-overlay"
+  >
+    <div
+      class="win-message-modal"
+    >
+      <div
+        class="win-message-header"
+      >
+        <h2>
+          🎉 Route Complete! 🎉
+        </h2>
+        <button
+          aria-label="Close win message"
+          class="win-message-close"
+        >
+          ×
+        </button>
+      </div>
+      <div
+        class="win-message-content"
+      >
+        <p>
+          You visited all houses and returned to the Post Office!
+        </p>
+        <p
+          class="efficiency-result"
+        >
+          Your efficiency:
+           
+          <span>
+            95.5%
+          </span>
+        </p>
+        <div
+          class="win-message-stats"
+        >
+          <div
+            class="win-stat-item"
+          >
+            <span
+              class="win-stat-label"
+            >
+              Distance:
+            </span>
+            <span>
+              105.20
+            </span>
+          </div>
+          <div
+            class="win-stat-item"
+          >
+            <span
+              class="win-stat-label"
+            >
+              Optimal:
+            </span>
+            <span>
+              100.50
+            </span>
+          </div>
+          <div
+            class="win-stat-item"
+          >
+            <span
+              class="win-stat-label"
+            >
+              Attempts:
+            </span>
+            <span>
+              3
+            </span>
+          </div>
+        </div>
+        <div
+          class="win-message-difficulty-prompt"
+        >
+          <p>
+            Great job! Ready for a bigger challenge?
+          </p>
+          <button
+            class="btn btn-primary"
+            title="Try Hard difficulty"
+          >
+            Try 
+            Hard
+             Difficulty
+          </button>
+        </div>
+        <div
+          class="win-message-actions"
+        >
+          <button
+            class="btn btn-secondary"
+            title="Try again"
+          >
+            Try Again
+          </button>
+          <button
+            class="btn btn-share"
+            title="Share your score"
+          >
+            Share
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`WinMessage > should match snapshot with easy difficulty (shows next difficulty prompt) 1`] = `
+<div>
+  <div
+    class="win-message-overlay"
+  >
+    <div
+      class="win-message-modal"
+    >
+      <div
+        class="win-message-header"
+      >
+        <h2>
+          🎉 Route Complete! 🎉
+        </h2>
+        <button
+          aria-label="Close win message"
+          class="win-message-close"
+        >
+          ×
+        </button>
+      </div>
+      <div
+        class="win-message-content"
+      >
+        <p>
+          You visited all houses and returned to the Post Office!
+        </p>
+        <p
+          class="efficiency-result"
+        >
+          Your efficiency:
+           
+          <span>
+            90.0%
+          </span>
+        </p>
+        <div
+          class="win-message-stats"
+        >
+          <div
+            class="win-stat-item"
+          >
+            <span
+              class="win-stat-label"
+            >
+              Distance:
+            </span>
+            <span>
+              111.50
+            </span>
+          </div>
+          <div
+            class="win-stat-item"
+          >
+            <span
+              class="win-stat-label"
+            >
+              Optimal:
+            </span>
+            <span>
+              100.50
+            </span>
+          </div>
+          <div
+            class="win-stat-item"
+          >
+            <span
+              class="win-stat-label"
+            >
+              Attempts:
+            </span>
+            <span>
+              1
+            </span>
+          </div>
+        </div>
+        <div
+          class="win-message-difficulty-prompt"
+        >
+          <p>
+            Great job! Ready for a bigger challenge?
+          </p>
+          <button
+            class="btn btn-primary"
+            title="Try Medium difficulty"
+          >
+            Try 
+            Medium
+             Difficulty
+          </button>
+        </div>
+        <div
+          class="win-message-actions"
+        >
+          <button
+            class="btn btn-secondary"
+            title="Try again"
+          >
+            Try Again
+          </button>
+          <button
+            class="btn btn-share"
+            title="Share your score"
+          >
+            Share
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`WinMessage > should match snapshot with hard difficulty (no next difficulty prompt) 1`] = `
+<div>
+  <div
+    class="win-message-overlay"
+  >
+    <div
+      class="win-message-modal"
+    >
+      <div
+        class="win-message-header"
+      >
+        <h2>
+          🎉 Route Complete! 🎉
+        </h2>
+        <button
+          aria-label="Close win message"
+          class="win-message-close"
+        >
+          ×
+        </button>
+      </div>
+      <div
+        class="win-message-content"
+      >
+        <p>
+          You visited all houses and returned to the Post Office!
+        </p>
+        <p
+          class="efficiency-result"
+        >
+          Your efficiency:
+           
+          <span>
+            98.2%
+          </span>
+        </p>
+        <div
+          class="win-message-stats"
+        >
+          <div
+            class="win-stat-item"
+          >
+            <span
+              class="win-stat-label"
+            >
+              Distance:
+            </span>
+            <span>
+              102.50
+            </span>
+          </div>
+          <div
+            class="win-stat-item"
+          >
+            <span
+              class="win-stat-label"
+            >
+              Optimal:
+            </span>
+            <span>
+              100.50
+            </span>
+          </div>
+          <div
+            class="win-stat-item"
+          >
+            <span
+              class="win-stat-label"
+            >
+              Attempts:
+            </span>
+            <span>
+              5
+            </span>
+          </div>
+        </div>
+        <div
+          class="win-message-actions"
+        >
+          <button
+            class="btn btn-secondary"
+            title="Try again"
+          >
+            Try Again
+          </button>
+          <button
+            class="btn btn-share"
+            title="Share your score"
+          >
+            Share
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`WinMessage > should match snapshot with no attempts 1`] = `
+<div>
+  <div
+    class="win-message-overlay"
+  >
+    <div
+      class="win-message-modal"
+    >
+      <div
+        class="win-message-header"
+      >
+        <h2>
+          🎉 Route Complete! 🎉
+        </h2>
+        <button
+          aria-label="Close win message"
+          class="win-message-close"
+        >
+          ×
+        </button>
+      </div>
+      <div
+        class="win-message-content"
+      >
+        <p>
+          You visited all houses and returned to the Post Office!
+        </p>
+        <p
+          class="efficiency-result"
+        >
+          Your efficiency:
+           
+          <span>
+            100%
+          </span>
+        </p>
+        <div
+          class="win-message-stats"
+        >
+          <div
+            class="win-stat-item"
+          >
+            <span
+              class="win-stat-label"
+            >
+              Distance:
+            </span>
+            <span>
+              100.50
+            </span>
+          </div>
+          <div
+            class="win-stat-item"
+          >
+            <span
+              class="win-stat-label"
+            >
+              Optimal:
+            </span>
+            <span>
+              100.50
+            </span>
+          </div>
+        </div>
+        <div
+          class="win-message-difficulty-prompt"
+        >
+          <p>
+            Great job! Ready for a bigger challenge?
+          </p>
+          <button
+            class="btn btn-primary"
+            title="Try Hard difficulty"
+          >
+            Try 
+            Hard
+             Difficulty
+          </button>
+        </div>
+        <div
+          class="win-message-actions"
+        >
+          <button
+            class="btn btn-secondary"
+            title="Try again"
+          >
+            Try Again
+          </button>
+          <button
+            class="btn btn-share"
+            title="Share your score"
+          >
+            Share
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

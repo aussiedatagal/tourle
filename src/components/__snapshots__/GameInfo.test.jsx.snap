@@ -1,0 +1,342 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`GameInfo > should match snapshot when loading 1`] = `
+<div>
+  <div
+    class="game-info"
+  >
+    <div
+      class="info-item"
+    >
+      <span
+        class="label"
+      >
+        Loading...
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`GameInfo > should match snapshot with best score 1`] = `
+<div>
+  <div
+    class="game-info"
+  >
+    <div
+      class="info-item"
+    >
+      <span
+        class="label"
+      >
+        Date:
+      </span>
+      <span>
+        2025-12-15
+      </span>
+    </div>
+    <div
+      class="info-item difficulty-item"
+    >
+      <div
+        class="difficulty-selector"
+      >
+        <label
+          class="difficulty-label"
+          for="difficulty-select"
+        >
+          Difficulty:
+        </label>
+        <select
+          class="difficulty-select"
+          id="difficulty-select"
+        >
+          <option
+            value="easy"
+          >
+            Easy
+          </option>
+          <option
+            value="medium"
+          >
+            Medium
+          </option>
+          <option
+            value="hard"
+          >
+            Hard
+          </option>
+        </select>
+      </div>
+    </div>
+    <div
+      class="info-item"
+    >
+      <span
+        class="label"
+      >
+        Distance:
+      </span>
+      <span>
+        105.20
+      </span>
+    </div>
+    <div
+      class="info-item"
+    >
+      <span
+        class="label"
+      >
+        Optimal:
+      </span>
+      <span>
+        100.50
+      </span>
+    </div>
+    <div
+      class="info-item"
+    >
+      <span
+        class="label"
+      >
+        Efficiency:
+      </span>
+      <span>
+        95.5%
+      </span>
+    </div>
+    <div
+      class="info-item"
+    >
+      <span
+        class="label"
+      >
+        Best:
+      </span>
+      <span
+        class="best-score-display"
+      >
+        98.5%
+      </span>
+    </div>
+    <div
+      class="info-item share-item"
+    >
+      <button
+        class="btn btn-secondary btn-stats"
+        title="View statistics"
+      >
+        📊 Stats
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`GameInfo > should match snapshot with game complete 1`] = `
+<div>
+  <div
+    class="game-info"
+  >
+    <div
+      class="info-item"
+    >
+      <span
+        class="label"
+      >
+        Date:
+      </span>
+      <span>
+        2025-12-15
+      </span>
+    </div>
+    <div
+      class="info-item difficulty-item"
+    >
+      <div
+        class="difficulty-selector"
+      >
+        <label
+          class="difficulty-label"
+          for="difficulty-select"
+        >
+          Difficulty:
+        </label>
+        <select
+          class="difficulty-select"
+          id="difficulty-select"
+        >
+          <option
+            value="easy"
+          >
+            Easy
+          </option>
+          <option
+            value="medium"
+          >
+            Medium
+          </option>
+          <option
+            value="hard"
+          >
+            Hard
+          </option>
+        </select>
+      </div>
+    </div>
+    <div
+      class="info-item"
+    >
+      <span
+        class="label"
+      >
+        Distance:
+      </span>
+      <span>
+        105.20
+      </span>
+    </div>
+    <div
+      class="info-item"
+    >
+      <span
+        class="label"
+      >
+        Optimal:
+      </span>
+      <span>
+        100.50
+      </span>
+    </div>
+    <div
+      class="info-item"
+    >
+      <span
+        class="label"
+      >
+        Efficiency:
+      </span>
+      <span>
+        95.5%
+      </span>
+    </div>
+    <div
+      class="info-item share-item"
+    >
+      <button
+        class="btn btn-share"
+        title="Share your score"
+      >
+        Share
+      </button>
+      <button
+        class="btn btn-secondary btn-stats"
+        title="View statistics"
+      >
+        📊 Stats
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`GameInfo > should match snapshot with puzzle data 1`] = `
+<div>
+  <div
+    class="game-info"
+  >
+    <div
+      class="info-item"
+    >
+      <span
+        class="label"
+      >
+        Date:
+      </span>
+      <span>
+        2025-12-15
+      </span>
+    </div>
+    <div
+      class="info-item difficulty-item"
+    >
+      <div
+        class="difficulty-selector"
+      >
+        <label
+          class="difficulty-label"
+          for="difficulty-select"
+        >
+          Difficulty:
+        </label>
+        <select
+          class="difficulty-select"
+          id="difficulty-select"
+        >
+          <option
+            value="easy"
+          >
+            Easy
+          </option>
+          <option
+            value="medium"
+          >
+            Medium
+          </option>
+          <option
+            value="hard"
+          >
+            Hard
+          </option>
+        </select>
+      </div>
+    </div>
+    <div
+      class="info-item"
+    >
+      <span
+        class="label"
+      >
+        Distance:
+      </span>
+      <span>
+        120.50
+      </span>
+    </div>
+    <div
+      class="info-item"
+    >
+      <span
+        class="label"
+      >
+        Optimal:
+      </span>
+      <span>
+        100.50
+      </span>
+    </div>
+    <div
+      class="info-item"
+    >
+      <span
+        class="label"
+      >
+        Efficiency:
+      </span>
+      <span>
+        83.2%
+      </span>
+    </div>
+    <div
+      class="info-item share-item"
+    >
+      <button
+        class="btn btn-secondary btn-stats"
+        title="View statistics"
+      >
+        📊 Stats
+      </button>
+    </div>
+  </div>
+</div>
+`;

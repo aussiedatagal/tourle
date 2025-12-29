@@ -257,9 +257,9 @@ describe('ThemeSwitcher', () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it('should match snapshot when visible', () => {
+  it('should match snapshot when visible', async () => {
     // Use a workaround to make it visible for snapshot
-    const { container, rerender } = render(
+    const { container } = render(
       <ThemeSwitcher
         currentTheme={mockCurrentTheme}
         onThemeChange={mockOnThemeChange}
@@ -284,6 +284,9 @@ describe('ThemeSwitcher', () => {
       fireEvent.keyDown(window, { code: key });
     });
 
+    // Wait for the component to update and become visible
+    await screen.findByText('🎨 Theme Switcher');
+    
     expect(container).toMatchSnapshot();
   });
 });

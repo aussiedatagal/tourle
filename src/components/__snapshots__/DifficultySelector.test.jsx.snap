@@ -1,0 +1,106 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`DifficultySelector > should match snapshot with easy difficulty selected 1`] = `
+<div>
+  <div
+    class="difficulty-selector"
+  >
+    <label
+      class="difficulty-label"
+      for="difficulty-select"
+    >
+      Difficulty:
+    </label>
+    <select
+      class="difficulty-select"
+      id="difficulty-select"
+    >
+      <option
+        value="easy"
+      >
+        Easy
+      </option>
+      <option
+        value="medium"
+      >
+        Medium
+      </option>
+      <option
+        value="hard"
+      >
+        Hard
+      </option>
+    </select>
+  </div>
+</div>
+`;
+
+exports[`DifficultySelector > should match snapshot with hard difficulty selected 1`] = `
+<div>
+  <div
+    class="difficulty-selector"
+  >
+    <label
+      class="difficulty-label"
+      for="difficulty-select"
+    >
+      Difficulty:
+    </label>
+    <select
+      class="difficulty-select"
+      id="difficulty-select"
+    >
+      <option
+        value="easy"
+      >
+        Easy
+      </option>
+      <option
+        value="medium"
+      >
+        Medium
+      </option>
+      <option
+        value="hard"
+      >
+        Hard
+      </option>
+    </select>
+  </div>
+</div>
+`;
+
+exports[`DifficultySelector > should match snapshot with medium difficulty selected 1`] = `
+<div>
+  <div
+    class="difficulty-selector"
+  >
+    <label
+      class="difficulty-label"
+      for="difficulty-select"
+    >
+      Difficulty:
+    </label>
+    <select
+      class="difficulty-select"
+      id="difficulty-select"
+    >
+      <option
+        value="easy"
+      >
+        Easy
+      </option>
+      <option
+        value="medium"
+      >
+        Medium
+      </option>
+      <option
+        value="hard"
+      >
+        Hard
+      </option>
+    </select>
+  </div>
+</div>
+`;

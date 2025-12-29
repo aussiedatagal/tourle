@@ -1,0 +1,145 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Controls > should match snapshot with empty route 1`] = `
+<div>
+  <div
+    class="controls"
+  >
+    <div
+      class="button-group"
+    >
+      <button
+        class="btn btn-secondary"
+        disabled=""
+      >
+        ← Back
+      </button>
+      <button
+        class="btn"
+      >
+        Reset Route
+      </button>
+      <div
+        class="give-up-button-wrapper"
+      >
+        <button
+          class="btn btn-warning"
+        >
+          Give Up
+        </button>
+      </div>
+      <button
+        class="btn btn-secondary"
+        title="Show instructions"
+      >
+        📖 Instructions
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Controls > should match snapshot with hard difficulty (no give up button) 1`] = `
+<div>
+  <div
+    class="controls"
+  >
+    <div
+      class="button-group"
+    >
+      <button
+        class="btn btn-secondary"
+      >
+        ← Back
+      </button>
+      <button
+        class="btn"
+      >
+        Reset Route
+      </button>
+      <button
+        class="btn btn-secondary"
+        title="Show instructions"
+      >
+        📖 Instructions
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Controls > should match snapshot with route in progress 1`] = `
+<div>
+  <div
+    class="controls"
+  >
+    <div
+      class="button-group"
+    >
+      <button
+        class="btn btn-secondary"
+      >
+        ← Back
+      </button>
+      <button
+        class="btn"
+      >
+        Reset Route
+      </button>
+      <div
+        class="give-up-button-wrapper"
+      >
+        <button
+          class="btn btn-warning"
+        >
+          Give Up
+        </button>
+      </div>
+      <button
+        class="btn btn-secondary"
+        title="Show instructions"
+      >
+        📖 Instructions
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Controls > should match snapshot with solution showing 1`] = `
+<div>
+  <div
+    class="controls"
+  >
+    <div
+      class="button-group"
+    >
+      <button
+        class="btn btn-secondary"
+      >
+        ← Back
+      </button>
+      <button
+        class="btn"
+      >
+        Reset Route
+      </button>
+      <div
+        class="give-up-button-wrapper"
+      >
+        <button
+          class="btn btn-warning"
+        >
+          Hide Solution
+        </button>
+      </div>
+      <button
+        class="btn btn-secondary"
+        title="Show instructions"
+      >
+        📖 Instructions
+      </button>
+    </div>
+  </div>
+</div>
+`;
