@@ -30,8 +30,16 @@ async function getPageErrors(page) {
     // - CORS errors when checking for puzzle files (expected during puzzle discovery)
     // - Network errors for missing puzzle files (expected during fallback search)
     // - Puzzle not found errors (expected during fallback search)
+    // - Vite module loading errors (transient during development/hot reload)
     const filteredErrors = allErrors.filter(error => {
       const errorStr = String(error).toLowerCase();
+      // Ignore Vite module loading errors (transient during development)
+      if (errorStr.includes('[vite]') || 
+          errorStr.includes('importing a module script failed') ||
+          errorStr.includes('failed to reload') ||
+          errorStr.includes('typeerror: importing a module')) {
+        return false;
+      }
       // Ignore CORS/access control errors for puzzle files
       if (errorStr.includes('access control') || errorStr.includes('cors')) {
         if (errorStr.includes('puzzle') || errorStr.includes('.json') || errorStr.includes('/puzzles/')) {

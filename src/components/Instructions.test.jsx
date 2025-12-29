@@ -46,4 +46,9 @@ describe('Instructions', () => {
     fireEvent.click(overlay);
     expect(handleClose).toHaveBeenCalledWith(false);
   });
+
+  it('should match snapshot when open', () => {
+    const { container } = render(<Instructions theme={mockTheme} isOpen />);
+    expect(container).toMatchSnapshot();
+  });
 });

@@ -256,5 +256,35 @@ describe('ThemeSwitcher', () => {
 
     expect(container.firstChild).toBeNull();
   });
+
+  it('should match snapshot when visible', () => {
+    // Use a workaround to make it visible for snapshot
+    const { container, rerender } = render(
+      <ThemeSwitcher
+        currentTheme={mockCurrentTheme}
+        onThemeChange={mockOnThemeChange}
+      />
+    );
+
+    // Trigger visibility by simulating Konami code
+    const konamiSequence = [
+      'ArrowUp',
+      'ArrowUp',
+      'ArrowDown',
+      'ArrowDown',
+      'ArrowLeft',
+      'ArrowRight',
+      'ArrowLeft',
+      'ArrowRight',
+      'KeyB',
+      'KeyA'
+    ];
+
+    konamiSequence.forEach(key => {
+      fireEvent.keyDown(window, { code: key });
+    });
+
+    expect(container).toMatchSnapshot();
+  });
 });
 

@@ -215,5 +215,18 @@ describe('DateSelector', () => {
     const select = await screen.findByRole('combobox');
     expect(select).toHaveClass('date-select');
   });
+
+  it('should match snapshot', async () => {
+    const { container } = render(
+      <DateSelector
+        selectedDate="2025-12-15"
+        onDateChange={mockOnDateChange}
+        theme={mockTheme}
+      />
+    );
+
+    await screen.findByRole('combobox');
+    expect(container).toMatchSnapshot();
+  });
 });
 
