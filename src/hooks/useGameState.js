@@ -384,6 +384,44 @@ export function useGameState(selectedDate = null, difficulty = 'medium', onDateC
     }
   }, [puzzleData, showingSolution, difficulty]);
 
+  // Hidden backdoor to reveal hard puzzle solutions
+  const revealHardSolution = useCallback(async () => {
+    if (!puzzleData || difficulty !== 'hard') return;
+
+    if (showingSolution) {
+      setShowingSolution(false);
+      setSolutionRoute(null);
+      setSolutionAnimationIndex(0);
+      if (solutionAnimationFrameRef.current) {
+        clearTimeout(solutionAnimationFrameRef.current);
+        solutionAnimationFrameRef.current = null;
+      }
+      return;
+    }
+
+    try {
+      const cleanDate = puzzleData.date.replace(' (Test)', '');
+      const solution = await loadSolution(cleanDate, 'hard');
+      setSolutionRoute(solution.route);
+      setShowingSolution(true);
+      setSolutionAnimationIndex(0);
+
+      const animate = () => {
+        setSolutionAnimationIndex(prev => {
+          const nextIndex = prev + 1;
+          if (nextIndex >= solution.route.length - 1) {
+            return solution.route.length - 1;
+          }
+          solutionAnimationFrameRef.current = setTimeout(animate, 300);
+          return nextIndex;
+        });
+      };
+      solutionAnimationFrameRef.current = setTimeout(animate, 300);
+    } catch (error) {
+      console.error('Error loading hard solution:', error);
+    }
+  }, [puzzleData, showingSolution, difficulty]);
+
   const animateRouteSegment = useCallback(() => {
     if (routeAnimationRef.current) {
       cancelAnimationFrame(routeAnimationRef.current);
@@ -451,7 +489,8 @@ export function useGameState(selectedDate = null, difficulty = 'medium', onDateC
     handleNodeClick,
     undoLastMove,
     resetRoute,
-    toggleSolution
+    toggleSolution,
+    revealHardSolution
   };
 }
 

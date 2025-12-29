@@ -124,7 +124,8 @@ function App() {
     handleNodeClick,
     undoLastMove,
     resetRoute,
-    toggleSolution
+    toggleSolution,
+    revealHardSolution
   } = useGameState(selectedDate, selectedDifficulty, setSelectedDate);
 
   useEffect(() => {
@@ -194,6 +195,8 @@ function App() {
           routeAnimationProgress={routeAnimationProgress}
           onNodeClick={handleNodeClick}
           theme={theme}
+          revealHardSolution={revealHardSolution}
+          difficulty={selectedDifficulty}
         />
       </div>
 

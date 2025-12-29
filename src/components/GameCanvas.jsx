@@ -2,19 +2,23 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { setupCanvas, getCanvasCoords, findNodeAt } from '../utils/canvasUtils';
 import { render } from '../utils/renderer';
 
-export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, showingSolution, solutionRoute, solutionAnimationIndex, routeAnimationProgress, onNodeClick, theme }) {
+export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, showingSolution, solutionRoute, solutionAnimationIndex, routeAnimationProgress, onNodeClick, theme, revealHardSolution, difficulty }) {
   const canvasRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartNode, setDragStartNode] = useState(null);
   const [dragTargetNode, setDragTargetNode] = useState(null);
   const touchHandledRef = useRef(false);
-  const stateRef = useRef({ isDragging, dragStartNode, gameComplete, puzzleData, onNodeClick, route, visitedHouses });
+  const stateRef = useRef({ isDragging, dragStartNode, gameComplete, puzzleData, onNodeClick, route, visitedHouses, difficulty, revealHardSolution });
   const touchDragStateRef = useRef({ isDragging: false, dragStartNode: null, hasMoved: false, lastVisitedNode: null });
   const lastVisitedNodeRef = useRef(null);
   
+  // Hidden backdoor: track north pole clicks for reveal
+  const northPoleClickCountRef = useRef(0);
+  const northPoleClickTimeoutRef = useRef(null);
+  
   useEffect(() => {
-    stateRef.current = { isDragging, dragStartNode, gameComplete, puzzleData, onNodeClick, route, visitedHouses };
-  }, [isDragging, dragStartNode, gameComplete, puzzleData, onNodeClick, route, visitedHouses]);
+    stateRef.current = { isDragging, dragStartNode, gameComplete, puzzleData, onNodeClick, route, visitedHouses, difficulty, revealHardSolution };
+  }, [isDragging, dragStartNode, gameComplete, puzzleData, onNodeClick, route, visitedHouses, difficulty, revealHardSolution]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -67,6 +71,28 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
         hasMoved: false,
         lastVisitedNode: node
       };
+      
+      // Hidden backdoor: 5 taps on north pole within 2 seconds reveals hard solution
+      if (state.difficulty === 'hard' && state.revealHardSolution && node && node.type === 'north_pole') {
+        northPoleClickCountRef.current += 1;
+        
+        // Clear existing timeout
+        if (northPoleClickTimeoutRef.current) {
+          clearTimeout(northPoleClickTimeoutRef.current);
+        }
+        
+        // If 5 taps within 2 seconds, reveal solution
+        if (northPoleClickCountRef.current >= 5) {
+          northPoleClickCountRef.current = 0;
+          state.revealHardSolution();
+          return;
+        }
+        
+        // Reset counter after 2 seconds
+        northPoleClickTimeoutRef.current = setTimeout(() => {
+          northPoleClickCountRef.current = 0;
+        }, 2000);
+      }
       
       if (node) {
         if (node.type === 'house' && state.visitedHouses && state.visitedHouses.has(node.id)) {
@@ -271,6 +297,31 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
     );
   }, [puzzleData, route, visitedHouses, showingSolution, solutionRoute, solutionAnimationIndex, routeAnimationProgress, dragStartNode, dragTargetNode, theme, scrollKey]);
 
+  // Hidden backdoor: keyboard shortcut (Ctrl+Shift+H) to reveal hard solution
+  useEffect(() => {
+    if (difficulty !== 'hard' || !revealHardSolution) return;
+
+    const handleKeyDown = (event) => {
+      // Ctrl+Shift+H (or Cmd+Shift+H on Mac)
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === 'h') {
+        event.preventDefault();
+        revealHardSolution();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [difficulty, revealHardSolution]);
+
+  // Cleanup north pole click timeout
+  useEffect(() => {
+    return () => {
+      if (northPoleClickTimeoutRef.current) {
+        clearTimeout(northPoleClickTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Helper function to check if a node is the same as another
   const isSameNode = useCallback((node1, node2) => {
     if (!node1 || !node2) return false;
@@ -361,6 +412,30 @@ export function GameCanvas({ puzzleData, route, visitedHouses, gameComplete, sho
     if (!canvas) return;
 
     const coords = getCanvasCoords(canvas, event);
+    const node = findNodeAt(puzzleData, coords.x, coords.y);
+    
+    // Hidden backdoor: 5 clicks on north pole within 2 seconds reveals hard solution
+    if (difficulty === 'hard' && revealHardSolution && node && node.type === 'north_pole') {
+      northPoleClickCountRef.current += 1;
+      
+      // Clear existing timeout
+      if (northPoleClickTimeoutRef.current) {
+        clearTimeout(northPoleClickTimeoutRef.current);
+      }
+      
+      // If 5 clicks within 2 seconds, reveal solution
+      if (northPoleClickCountRef.current >= 5) {
+        northPoleClickCountRef.current = 0;
+        revealHardSolution();
+        return;
+      }
+      
+      // Reset counter after 2 seconds
+      northPoleClickTimeoutRef.current = setTimeout(() => {
+        northPoleClickCountRef.current = 0;
+      }, 2000);
+    }
+    
     onNodeClick(coords.x, coords.y);
   };
 
